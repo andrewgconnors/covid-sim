@@ -1,0 +1,50 @@
+<div class="container">
+
+    <div class="row">
+        <div class="col-8">
+            <div>
+                <canvas #viz id="viz" class="comm-viz"></canvas>
+            </div>
+        </div>
+
+        <div class="col-4">
+            <h1>Community</h1>
+            <form>
+                <mat-form-field>
+                    <mat-label>Number of people</mat-label>
+                    <input matInput [ngModel]="numPeople" name="numPeople">
+                </mat-form-field>
+                <button mat-raised-button matSuffix color="primary">Reset</button>
+            </form>
+
+            <h2>People</h2>
+            <ul style="list-style-type: none;">
+                <li *ngFor="let p of comm.people">
+                    {{p.id}}, {{p.homeId}}, {{p.workId}}, {{p.schoolId}}, {{p.age}} years old, {{p.healthStatus | healthStatus | titlecase}}
+                </li>
+            </ul>
+
+            <h2>Homes</h2>
+            <ul style="list-style-type: none;">
+                <li *ngFor="let h of comm.homes">
+                    {{h.id}}, {{h.type | locationType}}, {{h.capacity}}, [{{h.coordinates}}]
+                </li>
+            </ul>
+
+            <h2>Workplaces</h2>
+            <ul style="list-style-type: none;">
+                <li *ngFor="let wp of comm.workplaces">
+                    {{wp.id}}, {{wp.type | locationType}}, {{wp.capacity}}, [{{wp.coordinates}}]
+                </li>
+            </ul>
+
+            <h2>Schools</h2>
+            <ul style="list-style-type: none;">
+                <li *ngFor="let s of comm.schools">
+                    {{s.id}}, {{s.type | locationType}}, {{s.capacity}}, [{{s.coordinates}}]
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</div>

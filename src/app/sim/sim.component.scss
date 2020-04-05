@@ -1,0 +1,49 @@
+@import 'src/styles.scss';
+
+.comm-viz.mat-card {
+    padding: 0px;
+    width: 100%;
+    height: 90vh;
+}
+
+.viz-container {
+    width: 100%;
+    height: 100%;
+}
+
+.mat-form-field-small {
+    max-width: 20%;
+}
+
+.mat-slider-large {
+    transform-origin: left center;
+    transform: scale(1.6);
+}
+
+::ng-deep .mat-card-header-text {
+    margin-left: 0px !important;
+}
+
+.info-input {
+    vertical-align: middle;
+}
+
+.ctrl-button {
+    color: mat-color($primary);
+
+    &.mat-button-toggle-checked {
+        color: mat-color($primary);
+    }
+
+    ::ng-deep & .mat-button-toggle-label-content {
+        line-height: 2.5em !important;
+    }
+}
+
+.display-btn-grp {
+    float: right;
+}
+
+::ng-deep .display-btn .mat-button-toggle-label-content {
+    line-height: 2em !important;
+}
