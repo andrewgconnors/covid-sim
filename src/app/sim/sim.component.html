@@ -1,16 +1,22 @@
 <div class="container-fluid">
 
     <div class="row">
-        <div class="col-8">
-            <mat-card class="mt-sm-3 comm-viz">
+        <div class="col-sm-8">
+            <mat-card class="mt-3 comm-viz">
                 <div #canvasCard class="viz-container" [hidden]="displayType !== 'viz'">
                     <canvas #viz id="viz"></canvas>
                 </div>
                 <span [hidden]="displayType !== 'graphs'">GRAPHS</span>
+                <button mat-icon-button class="loc-btn" color="primary" type="button" (click)="resetZoom()" aria-label="Reset zoom"><mat-icon>my_location</mat-icon></button>
             </mat-card>
 
+            <mat-button-toggle-group [(value)]="displayType" (change)="onDisplayTypeChange($event)">
+                <mat-button-toggle value="viz" class="display-btn">Visualization</mat-button-toggle>
+                <mat-button-toggle value="graphs" class="display-btn">Graphs</mat-button-toggle>
+            </mat-button-toggle-group>
+
             <!-- one-way binding on [value] keeps the old value in playSpeed when change handler is called -->
-            <mat-button-toggle-group (change)="onSimCtrlChange($event)" [value]="playSpeed">
+            <mat-button-toggle-group class="ctrl-btn-grp" (change)="onSimCtrlChange($event)" [value]="playSpeed">
                 <mat-button-toggle [value]="0" class="ctrl-button" mat-button>
                     <mat-icon>pause</mat-icon>
                 </mat-button-toggle>
@@ -21,16 +27,11 @@
                     <mat-icon>fast_forward</mat-icon>
                 </mat-button-toggle>
             </mat-button-toggle-group>
-
-            <mat-button-toggle-group class="display-btn-grp" [(value)]="displayType">
-                <mat-button-toggle value="viz" class="display-btn">Visualization</mat-button-toggle>
-                <mat-button-toggle value="graphs" class="display-btn">Graphs</mat-button-toggle>
-            </mat-button-toggle-group>
         </div>
 
-        <div class="col-4">
+        <div class="col-sm-4">
             <mat-accordion>
-                <mat-expansion-panel class="mt-sm-3"> <!-- TODO: Move [expanded]="true" back to this panel -->
+                <mat-expansion-panel class="mt-3"> <!-- TODO: Move [expanded]="true" back to this panel -->
                     <mat-expansion-panel-header>
                         <mat-panel-title><strong>Simulation Setup</strong></mat-panel-title>
                     </mat-expansion-panel-header>
@@ -125,7 +126,7 @@
 
                         </mat-accordion>
 
-                        <div class="container mt-sm-3">
+                        <div class="container mt-3">
                             <mat-form-field>
                                 <mat-label>Employment rate over age 65</mat-label>
                                 <input matInput [(ngModel)]="percentOver65Employed" name="pctOver65Employed" type="number" min="0" max="100" step="0.1">
@@ -133,14 +134,14 @@
                             %
                         </div>
                         
-                        <button mat-raised-button class="mt-sm-3 mr-sm-2" color="accent" type="button" (click)="revertSettings()">Undo Changes</button>
-                        <button mat-raised-button class="mt-sm-3" color="primary" type="submit">Rerun Simulation</button>
+                        <button mat-raised-button class="mt-3 mr-2" color="accent" type="button" (click)="revertSettings()">Undo Changes</button>
+                        <button mat-raised-button class="mt-3" color="primary" type="submit">Rerun Simulation</button>
                     </form>
                 </mat-expansion-panel>
 
-                <mat-expansion-panel class="mt-sm-3" [expanded]="true"> <!-- TODO: Delete [expanded]="true" from this expansion panel -->
+                <mat-expansion-panel class="mt-3" [expanded]="true"> <!-- TODO: Delete [expanded]="true" from this expansion panel -->
                     <mat-expansion-panel-header>
-                        <mat-panel-title><strong>Virus and Behavioral Properties</strong><mat-icon class="ml-sm-2 info-input" color="primary" matTooltip="These settings can be adjusted during a simulation" matTooltipPosition="above">info_outline</mat-icon></mat-panel-title>
+                        <mat-panel-title><strong>Virus and Behavioral Properties</strong><mat-icon class="ml-2 info-input" color="primary" matTooltip="These settings can be adjusted during a simulation" matTooltipPosition="above">info_outline</mat-icon></mat-panel-title>
                     </mat-expansion-panel-header>
 
                     <form>
@@ -161,66 +162,66 @@
                             </mat-expansion-panel>
                         </mat-accordion>
 
-                        <div class="container mt-sm-3">
+                        <div class="container mt-3">
                             <mat-form-field>
                                 <mat-label>Transmission probability</mat-label>
                                 <input matInput [(ngModel)]="pInfect" name="pInfect" type="number" min="0" max="1" step="0.01">
                             </mat-form-field>
-                            <mat-icon class="ml-sm-2 info-input" color="primary" matTooltip="The odds the virus will be transmitted through a single contact between a carrier and an uninfected person" matTooltipPosition="above">info_outline</mat-icon>
+                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The odds the virus will be transmitted through a single contact between a carrier and an uninfected person" matTooltipPosition="above">info_outline</mat-icon>
                         </div>
                         
                         <div class="container">
                             Incubation period:
                             <br>
-                            <mat-form-field class="mat-form-field-small mx-sm-1">
+                            <mat-form-field class="mat-form-field-small mx-1">
                                 <mat-label>Min</mat-label>
                                 <input matInput name="minIncubDays" type="number" step="1" [(ngModel)]="incubationDaysRange[0]">
                             </mat-form-field>
                             to
-                            <mat-form-field class="mat-form-field-small mx-sm-1">
+                            <mat-form-field class="mat-form-field-small mx-1">
                                 <mat-label>Max</mat-label>
                                 <input matInput name="maxIncubDays" type="number" step="1" [(ngModel)]="incubationDaysRange[1]">
                             </mat-form-field>
                             days
-                            <mat-icon class="ml-sm-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic and non-contagious" matTooltipPosition="above">info_outline</mat-icon>
+                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic and non-contagious" matTooltipPosition="above">info_outline</mat-icon>
                         </div>
 
                         <div class="container">
                             Asymptomatic period:
                             <br>
-                            <mat-form-field class="mat-form-field-small mx-sm-1">
+                            <mat-form-field class="mat-form-field-small mx-1">
                                 <mat-label>Min</mat-label>
                                 <input matInput name="minAsympDays" type="number" step="1" [(ngModel)]="asymptomaticDaysRange[0]">
                             </mat-form-field>
                             to
-                            <mat-form-field class="mat-form-field-small mx-sm-1">
+                            <mat-form-field class="mat-form-field-small mx-1">
                                 <mat-label>Max</mat-label>
                                 <input matInput name="maxAsympDays" type="number" step="1" [(ngModel)]="asymptomaticDaysRange[1]">
                             </mat-form-field>
                             days
-                            <mat-icon class="ml-sm-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic but contagious" matTooltipPosition="above">info_outline</mat-icon>
+                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic but contagious" matTooltipPosition="above">info_outline</mat-icon>
                         </div>
 
                         <div class="container">
                             Total infection period:
                             <br>
-                            <mat-form-field class="mat-form-field-small mx-sm-1">
+                            <mat-form-field class="mat-form-field-small mx-1">
                                 <mat-label>Min</mat-label>
                                 <input matInput name="minInfectedDays" type="number" step="1" [(ngModel)]="infectionDaysRange[0]">
                             </mat-form-field>
                             to
-                            <mat-form-field class="mat-form-field-small mx-sm-1">
+                            <mat-form-field class="mat-form-field-small mx-1">
                                 <mat-label>Max</mat-label>
                                 <input matInput name="maxInfectedDays" type="number" step="1" [(ngModel)]="infectionDaysRange[1]">
                             </mat-form-field>
                             days
-                            <mat-icon class="ml-sm-2 info-input" color="primary" matTooltip="The range of the total number of days the illness lasts, from infection to recovery" matTooltipPosition="above">info_outline</mat-icon>
+                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the total number of days the illness lasts, from infection to recovery" matTooltipPosition="above">info_outline</mat-icon>
                         </div>
 
                     </form>
                 </mat-expansion-panel>
 
-                <mat-expansion-panel class="mt-sm-3">
+                <mat-expansion-panel class="mt-3">
                     <mat-expansion-panel-header>
                         <mat-panel-title><strong>Statistics</strong></mat-panel-title>
                     </mat-expansion-panel-header>
@@ -232,7 +233,7 @@
                         <tr>numIll: {{ comm.statusCounts[3] }}</tr>
                         <tr>numRecovered: {{ comm.statusCounts[4] }}</tr>
                         <tr>numDead: {{ comm.statusCounts[5] }}</tr>
-                        <tr>R0: {{ comm.runningR0 }}</tr>
+                        <tr>R0: {{ comm.currentR0 | number:'1.0-2'  }}</tr>
                     </table>
                 </mat-expansion-panel>
             </mat-accordion>

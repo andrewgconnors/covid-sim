@@ -23,6 +23,8 @@ export class SimComponent implements OnInit {
   canvas: any;
   imgW = 24;
   imgH = 24;
+  totalWidth: number;
+  totalHeight: number;
 
   // Attach labels to component
   ageLabels = ageLabels;
@@ -33,7 +35,10 @@ export class SimComponent implements OnInit {
 
   // Play/pause speed of simulation
   playSpeed: number = 0;
+  tickDur: number = 2000;
+  dayLength: number = 0;
   displayType: string = "viz";
+  isAnimating: boolean = false;
 
   // Community
 
@@ -159,6 +164,13 @@ export class SimComponent implements OnInit {
     });
   }
 
+  noisyCanvasLocation(x: number, y: number, xSpread: number = .5, ySpread: number = .5): [number, number] {
+    return [
+      x + getRandomInt(-1*xSpread*this.imgW, xSpread*this.imgW),
+      y + getRandomInt(-1*ySpread*this.imgH, ySpread*this.imgH)
+    ];
+  }
+
   addPeople(render: boolean = true): void {
     let toAdd: number = this.comm.people.length;
     let added: number = 0;
@@ -171,7 +183,8 @@ export class SimComponent implements OnInit {
         img = fabric.util.object.clone(this.adultBaseImages[p.healthStatus]);
       }
       let homeLoc = this.scaledHomeLocs[p.homeId];
-      img.set({ left: homeLoc[0] + getRandomInt(-.5*this.imgW, .5*this.imgW), top: homeLoc[1] + getRandomInt(-.5*this.imgH, .5*this.imgH), width: this.imgW, height: this.imgH })
+      let [x, y] = this.noisyCanvasLocation(homeLoc[0], homeLoc[1]);
+      img.set({ left: x, top: y, width: this.imgW, height: this.imgH });
       this.canvas.add(img);
       this.personImgs[p.id] = img;
       if (render) {
@@ -193,16 +206,15 @@ export class SimComponent implements OnInit {
 
     // Calculate the original side length of the community - this mirrors community.model.ts
     let origDim = Math.ceil(Math.sqrt(this.comm.people.length));
-    // Add a margin of the width/height of the location images around the edges
-    let xScale = (this.canvasWidth - 2*this.imgW) / origDim;
-    let yScale = (this.canvasHeight - 2*this.imgH) / origDim;
+    this.totalWidth = 1.5*this.imgW*origDim + 2*this.imgW;
+    this.totalHeight = 1.5*this.imgH*origDim + 2*this.imgH;
 
     for (let h of this.comm.homes)
-      this.scaledHomeLocs[h.id] = [this.imgW + xScale*h.coordinates[0], this.imgH + yScale*h.coordinates[1]];
+      this.scaledHomeLocs[h.id] = [this.imgW + 1.5*this.imgW*h.coordinates[0], this.imgH + 1.5*this.imgH*h.coordinates[1]];
     for (let wp of this.comm.workplaces)
-      this.scaledWorkLocs[wp.id] = [this.imgW + xScale*wp.coordinates[0], this.imgH + yScale*wp.coordinates[1]];
+      this.scaledWorkLocs[wp.id] = [this.imgW + 1.5*this.imgW*wp.coordinates[0], this.imgH + 1.5*this.imgH*wp.coordinates[1]];
     for (let s of this.comm.schools)
-      this.scaledSchoolLocs[s.id] = [this.imgW + xScale*s.coordinates[0], this.imgH + yScale*s.coordinates[1]];
+      this.scaledSchoolLocs[s.id] = [this.imgW + 1.5*this.imgW*s.coordinates[0], this.imgH + 1.5*this.imgH*s.coordinates[1]];
   }
 
   initializeFabricCanvas(): void {
@@ -334,6 +346,7 @@ export class SimComponent implements OnInit {
     this.loadBaseImages(() => {
       this.addLocations.call(this);
       this.addPeople.call(this);
+      this.resetZoom();
     });
   }
 
@@ -345,14 +358,20 @@ export class SimComponent implements OnInit {
     this.scaledStoreLocs = [];
   }
 
+  updateVisualization () {
+    // TODO: Implement
+  }
+
   restartSim(): void {
     this.playSpeed = 0;
+    this.dayLength = this.tickDur*this.playSpeed;
     this.clearExistingCommunity();
     this.canvas.clear();
     this.initializeCommunity();
     this.resizeCanvas();
     this.addLocations();
     this.addPeople();
+    this.resetZoom();
   }
 
   revertSettings(): void {
@@ -379,23 +398,126 @@ export class SimComponent implements OnInit {
   onSimCtrlChange(event: any): void {
     let oldVal = this.playSpeed;
     this.playSpeed = event.value;
+    this.dayLength = this.tickDur*this.playSpeed;
     if (oldVal === 0) {
       // Start the ticking
       this.commStepTick();
     }
   }
 
+  /**
+   * Update the visualization when the display is switched.
+   */
+  onDisplayTypeChange(event: any): void {
+    if (event.value === 'viz')
+      this.updateVisualization();
+  }
+
+  animationLoop() {
+    if (this.isAnimating) {
+      fabric.util.requestAnimFrame(this.animationLoop.bind(this));
+      this.canvas.renderAll();
+    }
+  }
+
+  animateWorkSchoolMovement() {
+    // Animate people moving to school and work
+    for (let p of this.comm.people) {
+      let destX: number, destY: number;
+      if (p.workId !== null) {
+        [destX, destY] = this.scaledWorkLocs[p.workId];
+        [destX, destY] = this.noisyCanvasLocation(destX, destY);
+      }
+      else if (p.schoolId !== null) {
+        [destX, destY] = this.scaledSchoolLocs[p.schoolId];
+        [destX, destY] = this.noisyCanvasLocation(destX, destY);
+      }
+      else
+        continue;
+      // After continue guard, animate if the person goes to work/school
+      let pImg = this.personImgs[p.id];
+      let options: object = { duration: .5*this.dayLength*this.comm.numHoursWork/24 }
+      pImg.animate({'left': destX, 'top': destY }, options);
+    }
+  }
+
+  colorNewInfections(workInfections: object, schoolInfections: object) {
+    // Change healthStatus colors
+    for (let singleWorkInfs of Object.entries(workInfections)) {
+      let workId = singleWorkInfs[0];
+      let infectedPeople = singleWorkInfs[1];
+      infectedPeople.forEach(pId => {
+        let newImg;
+        let oldImg = this.personImgs[pId];
+        let p = this.comm.people[pId];
+        if (p.age <= 18) {
+          newImg = fabric.util.object.clone(this.kidBaseImages[p.healthStatus]);
+        }
+        else {
+          newImg = fabric.util.object.clone(this.adultBaseImages[p.healthStatus]);
+        }
+        newImg.set({ left: oldImg.left, top: oldImg.top, width: this.imgW, height: this.imgH });
+        this.canvas.remove(oldImg);
+        this.canvas.add(newImg);
+        this.personImgs[pId] = newImg;
+      }, this);
+    }
+  }
+
+  animateHomeMovement() {
+    // Animate people moving home
+    for (let p of this.comm.people) {
+      let destX: number, destY: number;
+      if (p.workId !== null || p.schoolId !== null) {
+        [destX, destY] = this.scaledHomeLocs[p.homeId];
+        [destX, destY] = this.noisyCanvasLocation(destX, destY);
+      }
+      else
+        continue;
+      // After continue guard, animate people going home
+      let pImg = this.personImgs[p.id];
+      let options: object = { duration: .5*this.dayLength*this.comm.numHoursWork/24 }
+      pImg.animate({'left': destX, 'top': destY }, options);
+    }
+  }
+
+  animateWorkSchool(workInfections: object, schoolInfections: object) {
+    this.isAnimating = true;
+    this.animationLoop();
+    setTimeout(() => { this.isAnimating = false }, this.dayLength);
+    this.animateWorkSchoolMovement();
+    
+    setTimeout(this.colorNewInfections.bind(this, workInfections, schoolInfections), this.dayLength*this.comm.numHoursWork/24);
+
+    setTimeout(this.animateHomeMovement.bind(this), this.dayLength*this.comm.numHoursWork/24);
+    // this.canvas.requestRenderAll();
+  }
+
+  animateHome(homeInfections: object) {
+
+  }
+
   doCommStep(): void {
-    if (this.playSpeed !== 0)
-      this.comm.step();
+    let result = this.comm.step();
+    if (this.displayType === 'viz') {
+      this.animateWorkSchool(result['workInfections'], result['schoolInfections']);
+      this.animateHome(result['homeInfections']);
+      // this.canvas.requestRenderAll();
+    }
   }
 
   commStepTick(): void {
     if (this.playSpeed === 0) return;
     else {
       this.doCommStep();
-      setTimeout(this.commStepTick.bind(this), 1000*this.playSpeed);
+      setTimeout(this.commStepTick.bind(this), this.dayLength);
     }
+  }
+
+  resetZoom(): void {
+    this.canvas.absolutePan(new fabric.Point(0, 0));
+    this.canvas.setZoom(Math.min(this.canvasWidth / this.totalWidth, this.canvasHeight / this.totalHeight));
+    this.canvas.requestRenderAll();
   }
 
   // ngModelChange handlers

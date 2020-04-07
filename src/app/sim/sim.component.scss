@@ -40,10 +40,17 @@
     }
 }
 
-.display-btn-grp {
+.ctrl-btn-grp {
     float: right;
 }
 
 ::ng-deep .display-btn .mat-button-toggle-label-content {
     line-height: 2em !important;
+}
+
+.loc-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: white;
 }
