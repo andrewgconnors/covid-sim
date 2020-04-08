@@ -3,7 +3,8 @@
     <div class="row">
         <div class="col-sm-8">
             <mat-card class="mt-3 comm-viz">
-                <div #canvasCard class="viz-container" [hidden]="displayType !== 'viz'">
+                <div #pixiContainer class="viz-container" [hidden]="displayType !== 'viz'"></div>
+                <div #canvasCard class="viz-container" [hidden]="true">
                     <canvas #viz id="viz"></canvas>
                 </div>
                 <span [hidden]="displayType !== 'graphs'">GRAPHS</span>

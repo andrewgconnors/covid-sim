@@ -1,9 +1,13 @@
 import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 
 import { fabric } from 'fabric';
+import * as PIXI from 'pixi.js';
+var loader = PIXI.Loader.shared;
 
+import { ADULT_IMGS, KID_IMGS, LOC_IMGS } from '../models/constants';
 import { Community } from '../models/community.model';
 import { getRandomInt } from '../utility-functions';
+import { velocity } from '../pixi-helpers';
 import { ageLabels, homeSizeLabels, workSizeLabels, schoolSizeLabels, initialDispersionTypes } from './labels';
 
 @Component({
@@ -13,14 +17,18 @@ import { ageLabels, homeSizeLabels, workSizeLabels, schoolSizeLabels, initialDis
 })
 export class SimComponent implements OnInit {
 
+  @ViewChild('pixiContainer', { static: true })
+  pixiContainer;
+  pix: PIXI.Application;
+
   // Canvas (HTML and Fabric)
   @ViewChild('viz', { static: true })
   canvasElem: ElementRef<HTMLCanvasElement>;
   @ViewChild('canvasCard', { static: true })
   canvasCardElem: ElementRef<HTMLCanvasElement>;
+  canvas: any;
   canvasWidth: number;
   canvasHeight: number;
-  canvas: any;
   imgW = 24;
   imgH = 24;
   totalWidth: number;
@@ -46,7 +54,7 @@ export class SimComponent implements OnInit {
 
   // Simulation settings with defaults - bound to form
   currentParams: object = {};
-  numPeople: number = 200;
+  numPeople: number = 20000;
   ageDist: number[] = [13.13, 13.84, 13.83, 13.00, 14.12, 13.59, 9.47, 5.38, 3.64]; // https://www.census.gov/prod/cen2010/briefs/c2010br-03.pdf
   homeSizeDist: number[] = [27, 34, 16, 14, 6, 2, 0.5, 0.5]; // https://www.statista.com/statistics/242189/disitribution-of-households-in-the-us-by-household-size/
   workplaceSizeDist: number[] = [8, 8, 8, 10, 11, 10, 9, 8, 7, 6, 5, 5, 5]; // no basis for this
@@ -71,12 +79,18 @@ export class SimComponent implements OnInit {
 
   // Images that have been added to the canvas. Each index matches the corresponding
   // ID for the object (location/person).
-  homeImgs: Array<fabric.Image> = [];
-  schoolImgs: Array<fabric.Image> = [];
-  workImgs: Array<fabric.Image> = [];
-  storeImgs: Array<fabric.Image> = [];
-  personImgs: Array<fabric.Image> = [];
-
+  fabricHomeImgs: Array<fabric.Image> = [];
+  fabricSchoolImgs: Array<fabric.Image> = [];
+  fabricWorkImgs: Array<fabric.Image> = [];
+  fabricPersonImgs: Array<fabric.Image> = [];
+  
+  animState: string = 'stop';
+  homeImgs: Array<PIXI.Sprite> = [];
+  schoolImgs: Array<PIXI.Sprite> = [];
+  workImgs: Array<PIXI.Sprite> = [];
+  storeImgs: Array<PIXI.Sprite> = [];
+  personImgs: Array<PIXI.Sprite> = [];
+  
   // Base images to be cloned on the canvas
   numBaseImgs: number = 11;
   baseHome: fabric.Image;
@@ -129,14 +143,38 @@ export class SimComponent implements OnInit {
     this.initializeCommunity();
   }
 
-  addLocations(render: boolean = true): void {
+  addLocations(): void {
+    this.scaledHomeLocs.forEach((h, i) => {
+      let sprite = new PIXI.Sprite(loader.resources[LOC_IMGS[0]].texture);
+      sprite.x = h[0];
+      sprite.y = h[1];
+      this.pix.stage.addChild(sprite);
+      this.homeImgs[i] = sprite;
+    }, this);
+    this.scaledWorkLocs.forEach((wp, i) => {
+      let sprite = new PIXI.Sprite(loader.resources[LOC_IMGS[1]].texture);
+      sprite.x = wp[0];
+      sprite.y = wp[1];
+      this.pix.stage.addChild(sprite);
+      this.workImgs[i] = sprite;
+    }, this);
+    this.scaledSchoolLocs.forEach((sch, i) => {
+      let sprite = new PIXI.Sprite(loader.resources[LOC_IMGS[2]].texture);
+      sprite.x = sch[0];
+      sprite.y = sch[1];
+      this.pix.stage.addChild(sprite);
+      this.schoolImgs[i] = sprite;
+    }, this);
+  }
+
+  fabricAddLocations(render: boolean = true): void {
     let toAdd: number = this.scaledHomeLocs.length + this.scaledWorkLocs.length + this.scaledSchoolLocs.length;
     let added: number = 0;
     this.scaledHomeLocs.forEach((h, i) => {
       let img = fabric.util.object.clone(this.baseHome);
       img.set({ left: h[0], top: h[1], width: this.imgW, height: this.imgH });
       this.canvas.add(img);
-      this.homeImgs[i] = img;
+      this.fabricHomeImgs[i] = img;
       if (render) {
         ++added;
         if (added >= toAdd) this.canvas.requestRenderAll();
@@ -146,7 +184,7 @@ export class SimComponent implements OnInit {
       let img = fabric.util.object.clone(this.baseWork);
       img.set({ left: wp[0], top: wp[1], width: this.imgW, height: this.imgH });
       this.canvas.add(img);
-      this.workImgs[i] = img;
+      this.fabricWorkImgs[i] = img;
       if (render) {
         ++added;
         if (added >= toAdd) this.canvas.requestRenderAll();
@@ -156,7 +194,7 @@ export class SimComponent implements OnInit {
       let img = fabric.util.object.clone(this.baseSchool);
       img.set({ left: s[0], top: s[1], width: this.imgW, height: this.imgH });
       this.canvas.add(img);
-      this.schoolImgs[i] = img;
+      this.fabricSchoolImgs[i] = img;
       if (render) {
         ++added;
         if (added >= toAdd) this.canvas.requestRenderAll();
@@ -171,7 +209,21 @@ export class SimComponent implements OnInit {
     ];
   }
 
-  addPeople(render: boolean = true): void {
+  addPeople(): void {
+    this.comm.people.forEach(p => {
+      let imgName = p.age <= 18 ? KID_IMGS[p.healthStatus] : ADULT_IMGS[p.healthStatus];
+      let sprite = new PIXI.Sprite(loader.resources[imgName].texture);
+      let homeLoc = this.noisyCanvasLocation(...this.scaledHomeLocs[p.homeId]);
+      sprite.x = homeLoc[0];
+      sprite.y = homeLoc[1];
+      sprite['vx'] = 0;
+      sprite['vy'] = 0;
+      this.pix.stage.addChild(sprite);
+      this.personImgs[p.id] = sprite;
+    }, this);
+  }
+
+  fabricAddPeople(render: boolean = true): void {
     let toAdd: number = this.comm.people.length;
     let added: number = 0;
     this.comm.people.forEach(p => {
@@ -186,7 +238,7 @@ export class SimComponent implements OnInit {
       let [x, y] = this.noisyCanvasLocation(homeLoc[0], homeLoc[1]);
       img.set({ left: x, top: y, width: this.imgW, height: this.imgH });
       this.canvas.add(img);
-      this.personImgs[p.id] = img;
+      this.fabricPersonImgs[p.id] = img;
       if (render) {
         ++added;
         if (added >= toAdd) this.canvas.requestRenderAll();
@@ -199,8 +251,8 @@ export class SimComponent implements OnInit {
    * coordinates of each location scaled according to the canvas size.
    */
   resizeCanvas(): void {
-    this.canvasWidth = this.canvasCardElem.nativeElement.clientWidth;
-    this.canvasHeight = this.canvasCardElem.nativeElement.clientHeight;
+    this.canvasWidth = this.pixiContainer.nativeElement.clientWidth;
+    this.canvasHeight = this.pixiContainer.nativeElement.clientHeight;
     this.canvasElem.nativeElement.width = this.canvasWidth;
     this.canvasElem.nativeElement.height = this.canvasHeight;
 
@@ -215,6 +267,67 @@ export class SimComponent implements OnInit {
       this.scaledWorkLocs[wp.id] = [this.imgW + 1.5*this.imgW*wp.coordinates[0], this.imgH + 1.5*this.imgH*wp.coordinates[1]];
     for (let s of this.comm.schools)
       this.scaledSchoolLocs[s.id] = [this.imgW + 1.5*this.imgW*s.coordinates[0], this.imgH + 1.5*this.imgH*s.coordinates[1]];
+  }
+
+  setPersonPaths(dests: {[id: number]: [number, number]}, duration: number): void {
+    Object.entries(dests).forEach(v => {
+      let id = v[0];
+      let [destX, destY] = v[1];
+      let sprite = this.personImgs[id];
+      [sprite['vx'], sprite['vy']] = velocity(sprite.x, sprite.y, destX, destY, duration);
+      sprite['dest'] = [destX, destY];
+    }, this);
+  }
+
+  animLoop(delta): void {
+    console.log(this.animState);
+    if (this.animState === 'stop') { }
+    else if (this.animState === 'play') {
+      this.personImgs.forEach(sprite => {
+        sprite.x += sprite['vx'];
+        sprite.y += sprite['vy'];
+        if (sprite['dest']) {
+          if (Math.abs(sprite.x - sprite['dest'][0]) < 5) sprite['vx'] = 0;
+          if (Math.abs(sprite.y - sprite['dest'][1]) < 5) sprite['vy'] = 0;
+        }
+      });
+    }
+  }
+
+  initializePixi(): void {
+    // this.resizeCanvas();
+    this.pix = new PIXI.Application({ width: this.canvasWidth, height: this.canvasHeight, antialias: true });
+    this.pix.renderer.backgroundColor = 0xFFFFFF;
+    this.pixiContainer.nativeElement.appendChild(this.pix.view);
+    loader.add([
+      "assets/adult-healthy.svg",
+      "assets/adult-incubating.svg",
+      "assets/adult-infectious.svg",
+      "assets/adult-recovered.svg",
+      "assets/kid-healthy.svg",
+      "assets/kid-incubating.svg",
+      "assets/kid-infectious.svg",
+      "assets/kid-recovered.svg",
+      "assets/home.svg",
+      "assets/work.svg",
+      "assets/school.svg"
+    ])
+    .load(() => {
+      this.addLocations.call(this);
+      this.addPeople.call(this);
+      let dests = {};
+      this.comm.people.forEach(p => {
+        if (p.workId !== null)
+          dests[p.id] = this.scaledWorkLocs[p.workId];
+        else if (p.schoolId !== null)
+          dests[p.id] = this.scaledSchoolLocs[p.schoolId];
+      }, this);
+                                  
+      this.setPersonPaths(dests, 60);
+      this.animState = 'play';
+      this.pix.ticker.add(delta => this.animLoop.call(this, delta));
+    });
+    
   }
 
   initializeFabricCanvas(): void {
@@ -264,10 +377,11 @@ export class SimComponent implements OnInit {
     this.resizeCanvas();
     this.canvas.setWidth(this.canvasWidth);
     this.canvas.setHeight(this.canvasHeight);
-    this.addLocations();
-    this.addPeople();
+    this.fabricAddLocations();
+    this.fabricAddPeople();
   }
 
+  // Delete
   loadBaseImages(callback?: Function) : void {
     let numLoaded = 0;
     fabric.Image.fromURL('assets/home.svg', img => {
@@ -342,10 +456,11 @@ export class SimComponent implements OnInit {
 
   ngAfterViewInit(): void {
     this.resizeCanvas();
+    this.initializePixi();
     this.initializeFabricCanvas();
     this.loadBaseImages(() => {
-      this.addLocations.call(this);
-      this.addPeople.call(this);
+      this.fabricAddLocations.call(this);
+      this.fabricAddPeople.call(this);
       this.resetZoom();
     });
   }
@@ -369,8 +484,8 @@ export class SimComponent implements OnInit {
     this.canvas.clear();
     this.initializeCommunity();
     this.resizeCanvas();
-    this.addLocations();
-    this.addPeople();
+    this.fabricAddLocations();
+    this.fabricAddPeople();
     this.resetZoom();
   }
 
@@ -435,7 +550,7 @@ export class SimComponent implements OnInit {
       else
         continue;
       // After continue guard, animate if the person goes to work/school
-      let pImg = this.personImgs[p.id];
+      let pImg = this.fabricPersonImgs[p.id];
       let options: object = { duration: .5*this.dayLength*this.comm.numHoursWork/24 }
       pImg.animate({'left': destX, 'top': destY }, options);
     }
@@ -448,7 +563,7 @@ export class SimComponent implements OnInit {
       let infectedPeople = singleWorkInfs[1];
       infectedPeople.forEach(pId => {
         let newImg;
-        let oldImg = this.personImgs[pId];
+        let oldImg = this.fabricPersonImgs[pId];
         let p = this.comm.people[pId];
         if (p.age <= 18) {
           newImg = fabric.util.object.clone(this.kidBaseImages[p.healthStatus]);
@@ -459,7 +574,7 @@ export class SimComponent implements OnInit {
         newImg.set({ left: oldImg.left, top: oldImg.top, width: this.imgW, height: this.imgH });
         this.canvas.remove(oldImg);
         this.canvas.add(newImg);
-        this.personImgs[pId] = newImg;
+        this.fabricPersonImgs[pId] = newImg;
       }, this);
     }
   }
@@ -475,7 +590,7 @@ export class SimComponent implements OnInit {
       else
         continue;
       // After continue guard, animate people going home
-      let pImg = this.personImgs[p.id];
+      let pImg = this.fabricPersonImgs[p.id];
       let options: object = { duration: .5*this.dayLength*this.comm.numHoursWork/24 }
       pImg.animate({'left': destX, 'top': destY }, options);
     }
