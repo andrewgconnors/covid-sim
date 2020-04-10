@@ -275,9 +275,10 @@ export class Community {
         return [incubationDays, asympDays, infectionDays, outcome];
     }
 
-    updateHealthStatuses(): number[] {
+    updateHealthStatuses(): [number[], number[]] {
         // IDs of people whose health status changed
-        let changedStatus: number[] = [];
+        let newInfections: number[] = [];
+        let progressions: number[] = [];
         this.people.forEach(p => {
             if (p.infectionCourse) {
                 let newStatus = bisect_right(p.infectionCourse, this.date); // TODO: double check that this works after you sleep
@@ -287,7 +288,8 @@ export class Community {
                     --this.statusCounts[p.healthStatus];
                     ++this.statusCounts[newStatus];
                     p.healthStatus = newStatus;
-                    changedStatus.push(p.id);
+                    if (p.infectedDate < this.date) progressions.push(p.id);
+                    else newInfections.push(p.id);
                 }
             }
         }, this);
@@ -302,7 +304,7 @@ export class Community {
         let vals = Object.values(counts) as number[];
         this.currentR0 = vals.length > 0 ? vals.reduce((prev, cur) => prev + cur, 0) / vals.length : 0;
 
-        return changedStatus;
+        return [progressions, newInfections];
     }
 
     /**
@@ -312,8 +314,10 @@ export class Community {
      *   homeInfections/workInfections/schoolInfections `object`: each object has
      *   location IDs as the keys, and lists of person IDs as the values. These
      *   are the new infections that occurred that day.
-     *   changedStatus `number[]`: list of IDs of all people whose healthStatus
-     *   changed in this step.
+     *   progressions `number[]`: list of IDs of people whose healthStatus
+     *   changed in this step because they were infected.
+     *   newInfections: `number[]`: list of IDs of people whose healthStatus
+     *   progressed in this step, but were previously infected.
      */
     step(): Object {
         let homeInfections = {};
@@ -346,7 +350,7 @@ export class Community {
                     }
                 }
             }
-            homeInfections[h.id] = newInfs;
+            if (newInfs.length > 0) homeInfections[h.id] = newInfs;
         }
 
         // Transmission inside workplaces
@@ -375,7 +379,7 @@ export class Community {
                     }
                 }
             }
-            workInfections[wp.id] = newInfs;
+            if (newInfs.length > 0) workInfections[wp.id] = newInfs;
         }
 
         // Transmission inside schools
@@ -404,10 +408,10 @@ export class Community {
                     }
                 }
             }
-            schoolInfections[school.id] = newInfs;
+            if (newInfs.length > 0) schoolInfections[school.id] = newInfs;
         }
 
-        let changedStatus = this.updateHealthStatuses();
+        let [progressions, newInfections] = this.updateHealthStatuses();
 
         return {
             'date': this.date++,
@@ -415,7 +419,8 @@ export class Community {
             'homeInfections': homeInfections,
             'workInfections': workInfections,
             'schoolInfections': schoolInfections,
-            'changedStatus': changedStatus
+            'progressions': progressions,
+            'newInfections': newInfections
         };
     }
 }

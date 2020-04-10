@@ -1,9 +1,21 @@
 @import 'src/styles.scss';
 
+.aspect-wrapper {
+    width:100%;
+    height: 90vh;
+}
+
+@media only screen and (max-width: 576px) {
+    .aspect-wrapper {
+        width: 100%;
+        height: 100vw;
+    }
+}
+
 .comm-viz.mat-card {
     padding: 0px;
     width: 100%;
-    height: 90vh;
+    height: 100%;
 }
 
 .viz-container {

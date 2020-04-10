@@ -1,15 +1,13 @@
 <div class="container-fluid">
-
-    <div class="row">
+    <div class="row pb-3">
         <div class="col-sm-8">
-            <mat-card class="mt-3 comm-viz">
-                <div #pixiContainer class="viz-container" [hidden]="displayType !== 'viz'"></div>
-                <div #canvasCard class="viz-container" [hidden]="true">
-                    <canvas #viz id="viz"></canvas>
-                </div>
-                <span [hidden]="displayType !== 'graphs'">GRAPHS</span>
-                <button mat-icon-button class="loc-btn" color="primary" type="button" (click)="resetZoom()" aria-label="Reset zoom"><mat-icon>my_location</mat-icon></button>
-            </mat-card>
+            <div class="aspect-wrapper">
+                <mat-card class="mt-3 comm-viz">
+                    <div #pixiContainer class="viz-container" [hidden]="displayType !== 'viz'"></div>
+                    <span [hidden]="displayType !== 'graphs'">GRAPHS</span>
+                    <button mat-icon-button class="loc-btn" color="primary" type="button" (click)="resetZoom()" aria-label="Reset zoom"><mat-icon>my_location</mat-icon></button>
+                </mat-card>
+            </div>
 
             <mat-button-toggle-group [(value)]="displayType" (change)="onDisplayTypeChange($event)">
                 <mat-button-toggle value="viz" class="display-btn">Visualization</mat-button-toggle>
@@ -17,14 +15,14 @@
             </mat-button-toggle-group>
 
             <!-- one-way binding on [value] keeps the old value in playSpeed when change handler is called -->
-            <mat-button-toggle-group class="ctrl-btn-grp" (change)="onSimCtrlChange($event)" [value]="playSpeed">
+            <mat-button-toggle-group class="ctrl-btn-grp" (change)="onPlaySpeedChange($event)" [value]="playSpeed">
                 <mat-button-toggle [value]="0" class="ctrl-button" mat-button>
                     <mat-icon>pause</mat-icon>
                 </mat-button-toggle>
-                <mat-button-toggle [value]="2" class="ctrl-button" mat-button>
+                <mat-button-toggle [value]="4" class="ctrl-button" mat-button>
                     <mat-icon>play_arrow</mat-icon>
                 </mat-button-toggle>
-                <mat-button-toggle [value]="1" class="ctrl-button" mat-button>
+                <mat-button-toggle [value]="2" class="ctrl-button" mat-button>
                     <mat-icon>fast_forward</mat-icon>
                 </mat-button-toggle>
             </mat-button-toggle-group>
@@ -136,7 +134,7 @@
                         </div>
                         
                         <button mat-raised-button class="mt-3 mr-2" color="accent" type="button" (click)="revertSettings()">Undo Changes</button>
-                        <button mat-raised-button class="mt-3" color="primary" type="submit">Rerun Simulation</button>
+                        <button mat-raised-button class="mt-3" color="primary" type="submit">Reset Simulation</button>
                     </form>
                 </mat-expansion-panel>
 
