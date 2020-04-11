@@ -17,6 +17,9 @@ import { ageLabels, homeSizeLabels, workSizeLabels, schoolSizeLabels, initialDis
 })
 export class SimComponent implements OnInit {
 
+  @ViewChild('statPanel', { static: true })
+  statPanel;
+
   @ViewChild('pixiContainer', { static: true })
   pixiContainer;
   pix: PIXI.Application;
@@ -308,6 +311,7 @@ export class SimComponent implements OnInit {
       // Start community animation
       this.animState = 'move';
       this.commStepTick();
+      this.statPanel.open();
     }
     else if (this.playSpeed === 0) {
       this.animState = 'stop';
