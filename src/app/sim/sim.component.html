@@ -3,9 +3,12 @@
         <div class="col-sm-8">
             <div class="aspect-wrapper">
                 <mat-card class="mt-3 comm-viz">
+
                     <div #pixiContainer class="viz-container" [hidden]="displayType !== 'viz'"></div>
+                    <button mat-icon-button class="loc-btn" color="primary" type="button" (click)="resetZoom()" aria-label="Reset zoom" [hidden]="displayType !== 'viz'"><mat-icon>my_location</mat-icon></button>
+
                     <span [hidden]="displayType !== 'graphs'">GRAPHS</span>
-                    <button mat-icon-button class="loc-btn" color="primary" type="button" (click)="resetZoom()" aria-label="Reset zoom"><mat-icon>my_location</mat-icon></button>
+
                 </mat-card>
             </div>
 
