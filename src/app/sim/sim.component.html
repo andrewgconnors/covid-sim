@@ -30,6 +30,22 @@
 
         <div class="col-sm-4">
             <mat-accordion>
+                <mat-expansion-panel class="mt-3" #statPanel>
+                    <mat-expansion-panel-header>
+                        <mat-panel-title><strong>Statistics</strong></mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <table>
+                        <tr>date: {{ comm.date }}</tr>
+                        <tr>numHealthy: {{ comm.statusCounts[0] }}</tr>
+                        <tr>numIncubating: {{ comm.statusCounts[1] }}</tr>
+                        <tr>numAsympotomatic: {{ comm.statusCounts[2] }}</tr>
+                        <tr>numIll: {{ comm.statusCounts[3] }}</tr>
+                        <tr>numRecovered: {{ comm.statusCounts[4] }}</tr>
+                        <tr>numDead: {{ comm.statusCounts[5] }}</tr>
+                        <tr>R0: {{ comm.currentR0 | number:'1.0-2'  }}</tr>
+                    </table>
+                </mat-expansion-panel>
+
                 <mat-expansion-panel class="mt-3"> <!-- TODO: Move [expanded]="true" back to this panel -->
                     <mat-expansion-panel-header>
                         <mat-panel-title><strong>Simulation Setup</strong></mat-panel-title>
@@ -157,7 +173,7 @@
                 <mat-expansion-panel class="mt-3" [expanded]="true"> <!-- TODO: Delete [expanded]="true" from this expansion panel -->
                     <!-- Dunno what the fuck is going on here. I guess toggle must be getting called 2 times, canceling out, bc to toggle the id should NOT be 'headerInfoIcon' -->
                     <mat-expansion-panel-header #propsPanelHeader (click)="$event.srcElement.id === 'headerInfoIcon' && propsPanelHeader._toggle()">
-                        <mat-panel-title><strong>Virus and Behavioral Properties</strong><mat-icon id="headerInfoIcon" class="ml-2 info-input" color="primary" matTooltip="These settings can be adjusted during a simulation" matTooltipPosition="above" #tooltip="matTooltip" (click)="tooltip.toggle()">info_outline</mat-icon></mat-panel-title>
+                        <mat-panel-title><strong>Virus Properties</strong><mat-icon id="headerInfoIcon" class="ml-2 info-input" color="primary" matTooltip="These settings can be adjusted mid-simulation and take immediate effect" matTooltipPosition="above" #tooltip="matTooltip" (click)="tooltip.toggle()">info_outline</mat-icon></mat-panel-title>
                     </mat-expansion-panel-header>
 
                     <form>
@@ -195,12 +211,12 @@
                             <br>
                             <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Min</mat-label>
-                                <input matInput name="minIncubDays" type="number" step="1" [(ngModel)]="incubationDaysRange[0]">
+                                <input matInput name="minIncubDays" type="number" step="1" min="0" max="{{incubationDaysRange[1]}}" [(ngModel)]="incubationDaysRange[0]">
                             </mat-form-field>
                             to
                             <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Max</mat-label>
-                                <input matInput name="maxIncubDays" type="number" step="1" [(ngModel)]="incubationDaysRange[1]">
+                                <input matInput name="maxIncubDays" type="number" step="1" min="{{incubationDaysRange[0]}}" [(ngModel)]="incubationDaysRange[1]">
                             </mat-form-field>
                             days
                             <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic and non-contagious" matTooltipPosition="above" #tooltip3="matTooltip" (click)="tooltip3.toggle()">info_outline</mat-icon>
@@ -211,12 +227,12 @@
                             <br>
                             <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Min</mat-label>
-                                <input matInput name="minAsympDays" type="number" step="1" [(ngModel)]="asymptomaticDaysRange[0]">
+                                <input matInput name="minAsympDays" type="number" step="1" min="0" max="{{asymptomaticDaysRange[1]}}" [(ngModel)]="asymptomaticDaysRange[0]">
                             </mat-form-field>
                             to
                             <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Max</mat-label>
-                                <input matInput name="maxAsympDays" type="number" step="1" [(ngModel)]="asymptomaticDaysRange[1]">
+                                <input matInput name="maxAsympDays" type="number" step="1" min="{{asymptomaticDaysRange[0]}}" [(ngModel)]="asymptomaticDaysRange[1]">
                             </mat-form-field>
                             days
                             <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic but contagious" matTooltipPosition="above" #tooltip4="matTooltip" (click)="tooltip4.toggle()">info_outline</mat-icon>
@@ -227,12 +243,12 @@
                             <br>
                             <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Min</mat-label>
-                                <input matInput name="minInfectedDays" type="number" step="1" [(ngModel)]="infectionDaysRange[0]">
+                                <input matInput name="minInfectedDays" type="number" step="1" min="0" max="{{infectionDaysRange[1]}}" [(ngModel)]="infectionDaysRange[0]">
                             </mat-form-field>
                             to
                             <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Max</mat-label>
-                                <input matInput name="maxInfectedDays" type="number" step="1" [(ngModel)]="infectionDaysRange[1]">
+                                <input matInput name="maxInfectedDays" type="number" step="1" min="{{infectionDaysRange[0]}}" [(ngModel)]="infectionDaysRange[1]">
                             </mat-form-field>
                             days
                             <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the total number of days the illness lasts, from infection to recovery" matTooltipPosition="above" #tooltip5="matTooltip" (click)="tooltip5.toggle()">info_outline</mat-icon>
@@ -242,20 +258,15 @@
                 </mat-expansion-panel>
 
                 <mat-expansion-panel class="mt-3">
-                    <mat-expansion-panel-header>
-                        <mat-panel-title><strong>Statistics</strong></mat-panel-title>
+                    <!-- Ibid. -->
+                    <mat-expansion-panel-header #behaviorPanel (click)="$event.srcElement.id === 'headerInfoIcon2' && behaviorPanel._toggle()">
+                        <mat-panel-title><strong>Social Behavior</strong><mat-icon id="headerInfoIcon2" class="ml-2 info-input" color="primary" matTooltip="These settings can be adjusted mid-simulation and take immediate effect" matTooltipPosition="above" #tooltip6="matTooltip" (click)="tooltip6.toggle()">info_outline</mat-icon></mat-panel-title>
                     </mat-expansion-panel-header>
-                    <table>
-                        <tr>date: {{ comm.date }}</tr>
-                        <tr>numHealthy: {{ comm.statusCounts[0] }}</tr>
-                        <tr>numIncubating: {{ comm.statusCounts[1] }}</tr>
-                        <tr>numAsympotomatic: {{ comm.statusCounts[2] }}</tr>
-                        <tr>numIll: {{ comm.statusCounts[3] }}</tr>
-                        <tr>numRecovered: {{ comm.statusCounts[4] }}</tr>
-                        <tr>numDead: {{ comm.statusCounts[5] }}</tr>
-                        <tr>R0: {{ comm.currentR0 | number:'1.0-2'  }}</tr>
-                    </table>
+
+                    <form>
+                    </form>
                 </mat-expansion-panel>
+                
             </mat-accordion>
 
             <!-- <h2>People</h2>
