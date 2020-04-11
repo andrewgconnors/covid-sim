@@ -23,13 +23,48 @@
     height: 100%;
 }
 
-.mat-form-field-small {
-    max-width: 20%;
+.mat-form-field-xs {
+    max-width: 4ch;
+}
+
+.mat-form-field-sm {
+    max-width: 7.5ch;
+}
+
+.sliders-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.slider-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+
+    &.vert-ctr {
+        vertical-align: middle;
+    }
+}
+
+.slider-wrapper {
+    flex-grow: 1;
 }
 
 .mat-slider-large {
     transform-origin: left center;
     transform: scale(1.6);
+    width: 62.5%;
+    padding: 0px;
+
+    &.mat-slider-horizontal {
+        min-width: 64px;
+    }
+}
+
+.mat-expansion-panel .mat-expansion-panel-header {
+    height: auto !important;
+    min-height: 48px;
 }
 
 ::ng-deep .mat-card-header-text {

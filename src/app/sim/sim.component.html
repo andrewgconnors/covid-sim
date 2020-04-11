@@ -67,60 +67,76 @@
                                 <mat-expansion-panel-header>
                                     <mat-panel-title>Population age distribution</mat-panel-title>
                                 </mat-expansion-panel-header>
-                                <div *ngFor="let label of ageLabels; let i = index">
-                                    <mat-form-field class="mat-form-field-small">
-                                        <mat-label>{{ label }}</mat-label>
-                                        <input matInput name="ageDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="ageDist[i]" (ngModelChange)="onAgeDistChange($event)">
-                                    </mat-form-field>
-                                    %
-                                    <mat-slider class="mat-slider-large" name="ageDistSlider{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="ageDist[i]" (ngModelChange)="onAgeDistChange($event)"></mat-slider>
+                                <div class="sliders-panel">
+                                    <div class="slider-row" *ngFor="let label of ageLabels; let i = index">
+                                        <mat-form-field class="mat-form-field-sm">
+                                            <mat-label>{{ label }}</mat-label>
+                                            <input matInput name="ageDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="ageDist[i]" (ngModelChange)="onAgeDistChange($event)">
+                                        </mat-form-field>
+                                        <span class="ml-1">%</span>
+                                        <div class="slider-wrapper">
+                                            <mat-slider class="mat-slider-large" name="ageDistSlider{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="ageDist[i]" (ngModelChange)="onAgeDistChange($event)"></mat-slider>
+                                        </div>
+                                    </div>
+                                    <span [ngStyle]="{'color': ageDistSum === '100.000' ? 'green' : 'red'}" >Total: {{ ageDistSum | number:'1.0-3' }}</span>
                                 </div>
-                                <span [ngStyle]="{'color': ageDistSum === '100.000' ? 'green' : 'red'}" >Total: {{ ageDistSum | number:'1.0-3' }}</span>
                             </mat-expansion-panel>
 
                             <mat-expansion-panel>
                                 <mat-expansion-panel-header>
                                     <mat-panel-title>Household size distribution</mat-panel-title>
                                 </mat-expansion-panel-header>
-                                <div *ngFor="let label of homeSizeLabels; let i = index">
-                                    <mat-form-field class="mat-form-field-small">
-                                        <mat-label>{{ label }}</mat-label>
-                                        <input matInput name="homeSizeDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="homeSizeDist[i]" (ngModelChange)="onHomeDistChange($event)">
-                                    </mat-form-field>
-                                    %
-                                    <mat-slider class="mat-slider-large" name="homeSizeDist{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="homeSizeDist[i]" (ngModelChange)="onHomeDistChange($event)"></mat-slider>
+                                <div class="sliders-panel">
+                                    <div class="slider-row" *ngFor="let label of homeSizeLabels; let i = index">
+                                        <mat-form-field class="mat-form-field-sm">
+                                            <mat-label>{{ label }}</mat-label>
+                                            <input matInput name="homeSizeDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="homeSizeDist[i]" (ngModelChange)="onHomeDistChange($event)">
+                                        </mat-form-field>
+                                        <span class="ml-1">%</span>
+                                        <div class="slider-wrapper">
+                                            <mat-slider class="mat-slider-large" name="homeSizeDist{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="homeSizeDist[i]" (ngModelChange)="onHomeDistChange($event)"></mat-slider>
+                                        </div>
+                                    </div>
+                                    <span [ngStyle]="{'color': homeSizeDistSum === '100.000' ? 'green' : 'red'}" >Total: {{ homeSizeDistSum | number:'1.0-3' }}</span>
                                 </div>
-                                <span [ngStyle]="{'color': homeSizeDistSum === '100.000' ? 'green' : 'red'}" >Total: {{ homeSizeDistSum | number:'1.0-3' }}</span>
                             </mat-expansion-panel>
 
                             <mat-expansion-panel>
                                 <mat-expansion-panel-header>
                                     <mat-panel-title>Workplace size distribution</mat-panel-title>
                                 </mat-expansion-panel-header>
-                                <div *ngFor="let label of workSizeLabels; let i = index">
-                                    <mat-form-field class="mat-form-field-small">
-                                        <mat-label>{{ label }}</mat-label>
-                                        <input matInput name="workSizeDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="workplaceSizeDist[i]" (ngModelChange)="onWorkDistChange($event)">
-                                    </mat-form-field>
-                                    %
-                                    <mat-slider class="mat-slider-large" name="workSizeDist{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="workplaceSizeDist[i]" (ngModelChange)="onWorkDistChange($event)"></mat-slider>
+                                <div class="sliders-panel">
+                                    <div class="slider-row" *ngFor="let label of workSizeLabels; let i = index">
+                                        <mat-form-field class="mat-form-field-sm">
+                                            <mat-label>{{ label }}</mat-label>
+                                            <input matInput name="workSizeDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="workplaceSizeDist[i]" (ngModelChange)="onWorkDistChange($event)">
+                                        </mat-form-field>
+                                        <span class="ml-1">%</span>
+                                        <div class="slider-wrapper">
+                                            <mat-slider class="mat-slider-large" name="workSizeDist{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="workplaceSizeDist[i]" (ngModelChange)="onWorkDistChange($event)"></mat-slider>
+                                        </div>
+                                    </div>
+                                    <span [ngStyle]="{'color': workplaceSizeDistSum === '100.000' ? 'green' : 'red'}" >Total: {{ workplaceSizeDistSum | number:'1.0-3' }}</span>
                                 </div>
-                                <span [ngStyle]="{'color': workplaceSizeDistSum === '100.000' ? 'green' : 'red'}" >Total: {{ workplaceSizeDistSum | number:'1.0-3' }}</span>
                             </mat-expansion-panel>
 
                             <mat-expansion-panel>
                                 <mat-expansion-panel-header>
                                     <mat-panel-title>School size distribution</mat-panel-title>
                                 </mat-expansion-panel-header>
-                                <div *ngFor="let label of schoolSizeLabels; let i = index">
-                                    <mat-form-field class="mat-form-field-small">
-                                        <mat-label>{{ label }}</mat-label>
-                                        <input matInput name="schoolSizeDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="schoolSizeDist[i]" (ngModelChange)="onSchoolDistChange($event)">
-                                    </mat-form-field>
-                                    %
-                                    <mat-slider class="mat-slider-large" name="schoolSizeDist{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="schoolSizeDist[i]" (ngModelChange)="onSchoolDistChange($event)"></mat-slider>
+                                <div class="sliders-panel">
+                                    <div class="slider-row" *ngFor="let label of schoolSizeLabels; let i = index">
+                                        <mat-form-field class="mat-form-field-sm">
+                                            <mat-label>{{ label }}</mat-label>
+                                            <input matInput name="schoolSizeDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="schoolSizeDist[i]" (ngModelChange)="onSchoolDistChange($event)">
+                                        </mat-form-field>
+                                        <span class="ml-1">%</span>
+                                        <div class="slider-wrapper">
+                                            <mat-slider class="mat-slider-large" name="schoolSizeDist{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="schoolSizeDist[i]" (ngModelChange)="onSchoolDistChange($event)"></mat-slider>
+                                        </div>
+                                    </div>
+                                    <span [ngStyle]="{'color': schoolSizeDistSum === '100.000' ? 'green' : 'red'}" >Total: {{ schoolSizeDistSum | number:'1.0-3' }}</span>
                                 </div>
-                                <span [ngStyle]="{'color': schoolSizeDistSum === '100.000' ? 'green' : 'red'}" >Total: {{ schoolSizeDistSum | number:'1.0-3' }}</span>
                             </mat-expansion-panel>
 
                         </mat-accordion>
@@ -139,8 +155,9 @@
                 </mat-expansion-panel>
 
                 <mat-expansion-panel class="mt-3" [expanded]="true"> <!-- TODO: Delete [expanded]="true" from this expansion panel -->
-                    <mat-expansion-panel-header>
-                        <mat-panel-title><strong>Virus and Behavioral Properties</strong><mat-icon class="ml-2 info-input" color="primary" matTooltip="These settings can be adjusted during a simulation" matTooltipPosition="above">info_outline</mat-icon></mat-panel-title>
+                    <!-- Dunno what the fuck is going on here. I guess toggle must be getting called 2 times, canceling out, bc to toggle the id should NOT be 'headerInfoIcon' -->
+                    <mat-expansion-panel-header #propsPanelHeader (click)="$event.srcElement.id === 'headerInfoIcon' && propsPanelHeader._toggle()">
+                        <mat-panel-title><strong>Virus and Behavioral Properties</strong><mat-icon id="headerInfoIcon" class="ml-2 info-input" color="primary" matTooltip="These settings can be adjusted during a simulation" matTooltipPosition="above" #tooltip="matTooltip" (click)="tooltip.toggle()">info_outline</mat-icon></mat-panel-title>
                     </mat-expansion-panel-header>
 
                     <form>
@@ -150,13 +167,17 @@
                                 <mat-expansion-panel-header>
                                     <mat-panel-title>Fatality rate by age</mat-panel-title>
                                 </mat-expansion-panel-header>
-                                <div *ngFor="let label of ageLabels; let i = index">
-                                    <mat-form-field class="mat-form-field-small">
-                                        <mat-label>{{ label }}</mat-label>
-                                        <input matInput name="fatalityPercent{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="fatalityPercent[i]">
-                                    </mat-form-field>
-                                    %
-                                    <mat-slider class="mat-slider-large" name="fatalityPercentSlider{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="fatalityPercent[i]"></mat-slider>
+                                <div class="sliders-panel">
+                                    <div class="slider-row" *ngFor="let label of ageLabels; let i = index">
+                                        <mat-form-field class="mat-form-field-sm">
+                                            <mat-label>{{ label }}</mat-label>
+                                            <input matInput name="fatalityPercent{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="fatalityPercent[i]">
+                                        </mat-form-field>
+                                        <span class="ml-1">%</span>
+                                        <div class="slider-wrapper">
+                                            <mat-slider class="mat-slider-large" name="fatalityPercentSlider{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="fatalityPercent[i]"></mat-slider>
+                                        </div>
+                                    </div>
                                 </div>
                             </mat-expansion-panel>
                         </mat-accordion>
@@ -166,55 +187,55 @@
                                 <mat-label>Transmission probability</mat-label>
                                 <input matInput [(ngModel)]="pInfect" name="pInfect" type="number" min="0" max="1" step="0.01">
                             </mat-form-field>
-                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The odds the virus will be transmitted through a single contact between a carrier and an uninfected person" matTooltipPosition="above">info_outline</mat-icon>
+                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The odds the virus will be transmitted through a single contact between a carrier and an uninfected person" matTooltipPosition="above" #tooltip2="matTooltip" (click)="tooltip2.toggle()">info_outline</mat-icon>
                         </div>
                         
                         <div class="container">
                             Incubation period:
                             <br>
-                            <mat-form-field class="mat-form-field-small mx-1">
+                            <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Min</mat-label>
                                 <input matInput name="minIncubDays" type="number" step="1" [(ngModel)]="incubationDaysRange[0]">
                             </mat-form-field>
                             to
-                            <mat-form-field class="mat-form-field-small mx-1">
+                            <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Max</mat-label>
                                 <input matInput name="maxIncubDays" type="number" step="1" [(ngModel)]="incubationDaysRange[1]">
                             </mat-form-field>
                             days
-                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic and non-contagious" matTooltipPosition="above">info_outline</mat-icon>
+                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic and non-contagious" matTooltipPosition="above" #tooltip3="matTooltip" (click)="tooltip3.toggle()">info_outline</mat-icon>
                         </div>
 
                         <div class="container">
                             Asymptomatic period:
                             <br>
-                            <mat-form-field class="mat-form-field-small mx-1">
+                            <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Min</mat-label>
                                 <input matInput name="minAsympDays" type="number" step="1" [(ngModel)]="asymptomaticDaysRange[0]">
                             </mat-form-field>
                             to
-                            <mat-form-field class="mat-form-field-small mx-1">
+                            <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Max</mat-label>
                                 <input matInput name="maxAsympDays" type="number" step="1" [(ngModel)]="asymptomaticDaysRange[1]">
                             </mat-form-field>
                             days
-                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic but contagious" matTooltipPosition="above">info_outline</mat-icon>
+                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the number of days an infected person can be asymptomatic but contagious" matTooltipPosition="above" #tooltip4="matTooltip" (click)="tooltip4.toggle()">info_outline</mat-icon>
                         </div>
 
                         <div class="container">
                             Total infection period:
                             <br>
-                            <mat-form-field class="mat-form-field-small mx-1">
+                            <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Min</mat-label>
                                 <input matInput name="minInfectedDays" type="number" step="1" [(ngModel)]="infectionDaysRange[0]">
                             </mat-form-field>
                             to
-                            <mat-form-field class="mat-form-field-small mx-1">
+                            <mat-form-field class="mat-form-field-xs mx-1">
                                 <mat-label>Max</mat-label>
                                 <input matInput name="maxInfectedDays" type="number" step="1" [(ngModel)]="infectionDaysRange[1]">
                             </mat-form-field>
                             days
-                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the total number of days the illness lasts, from infection to recovery" matTooltipPosition="above">info_outline</mat-icon>
+                            <mat-icon class="ml-2 info-input" color="primary" matTooltip="The range of the total number of days the illness lasts, from infection to recovery" matTooltipPosition="above" #tooltip5="matTooltip" (click)="tooltip5.toggle()">info_outline</mat-icon>
                         </div>
 
                     </form>

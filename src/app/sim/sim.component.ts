@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 
-import { fabric } from 'fabric';
 import * as PIXI from 'pixi.js';
 var loader = PIXI.Loader.shared;
 import { Viewport } from 'pixi-viewport';
@@ -37,7 +36,6 @@ export class SimComponent implements OnInit {
   displayType: string = "viz";
   animState: string = 'stop';
   midAnim: boolean = false;
-  animStep: number = 0;
 
   // Community
 
@@ -311,13 +309,11 @@ export class SimComponent implements OnInit {
     this.playSpeed = event.value;
     this.dayLength = this.playSpeed*this.fps;
     if (oldVal === 0) {
-      // Start community step() ticker and animation
+      // Start community animation
       this.animState = 'move';
-      this.pix.ticker.start();
       this.commStepTick();
     }
     else if (this.playSpeed === 0) {
-      this.pix.ticker.stop();
       this.animState = 'stop';
     }
   }
@@ -376,9 +372,10 @@ export class SimComponent implements OnInit {
     this.countTexts.push(msg);
   }
 
-  animateWorkSchoolMovement(duration: number, animStep: number) {
+  animateWorkSchoolMovement(duration: number, next?: Function, nextDelay?: number) {
+    console.log(...arguments)
     // Guard for paused simulation
-    if (this.animState === 'stop' || this.animStep !== animStep) {
+    if (this.animState === 'stop') {
       setTimeout(this.animateWorkSchoolMovement.bind(this, ...arguments), 100);
       return;
     }
@@ -392,13 +389,13 @@ export class SimComponent implements OnInit {
     }, this);
     this.setPersonPaths(dests, duration);
 
-    ++this.animStep;
-    console.log(this.animStep);
+    console.log(next);
+    if (next) setTimeout(next, nextDelay || 0);
   }
 
-  colorWorkSchoolInfections(workInfections: object, schoolInfections: object, animStep: number) {
+  colorWorkSchoolInfections(workInfections: object, schoolInfections: object, next?: Function, nextDelay?: number) {
     // Guard for paused simulation
-    if (this.animState === 'stop' || this.animStep !== animStep) {
+    if (this.animState === 'stop') {
       setTimeout(this.colorWorkSchoolInfections.bind(this, ...arguments), 100);
       return;
     }
@@ -439,14 +436,12 @@ export class SimComponent implements OnInit {
       this.addCountText('+' + count.toString(), this.scaledSchoolLocs[schoolId][0], this.scaledSchoolLocs[schoolId][1], 1000);
     }, this);
 
-    ++this.animStep;
-    console.log(this.animStep);
+    if (next) setTimeout(next, nextDelay || 0);
   }
 
-  animateHomeMovement(duration: number, animStep: number) {
-    console.log("HomeMovement", this.animStep, animStep);
+  animateHomeMovement(duration: number, next?: Function, nextDelay?: number) {
     // Guard for paused simulation
-    if (this.animState === 'stop' || this.animStep !== animStep) {
+    if (this.animState === 'stop') {
       setTimeout(this.animateHomeMovement.bind(this, ...arguments), 100);
       return;
     }
@@ -458,71 +453,71 @@ export class SimComponent implements OnInit {
     }, this);
     this.setPersonPaths(dests, duration);
 
-    ++this.animStep;
-    console.log(this.animStep);
+    if (next) setTimeout(next, nextDelay || 0);
   }
 
-  animateWorkSchool(workInfections: object, schoolInfections: object, workFrames: number, animStep: number[]) {
+  animateWorkSchool(workInfections: object, schoolInfections: object, workFrames: number, next?: Function, nextDelay?: number) {
     // Guard for paused simulation
-    if (this.animState === 'stop' || this.animStep !== animStep[0]) {
+    if (this.animState === 'stop') {
       setTimeout(this.animateWorkSchool.bind(this, ...arguments), 100);
       return;
     }
-    else {
-      ++this.animStep;
-    console.log(this.animStep);
-    }
     
-    this.animateWorkSchoolMovement(.4*workFrames, animStep[1]);
-    
-    // .4 * 1000 ms/s * workFrames frames / this.fps frames/s = ms
-    setTimeout(this.colorWorkSchoolInfections.bind(this, workInfections, schoolInfections, animStep[2]), 450*workFrames/this.fps);
+    var f3 = this.animateHomeMovement.bind(this, .4*workFrames, next, nextDelay);
+    var f3Delay = 100*workFrames/this.fps;
+    var f2 = this.colorWorkSchoolInfections.bind(this, workInfections, schoolInfections, f3, f3Delay);
+    var f2Delay = 450*workFrames/this.fps;
+    var f1 = this.animateWorkSchoolMovement.bind(this, .4*workFrames, f2, f2Delay);
 
-    // .6 * 1000 ms/s * workFrames frames / this.fps frames/s = ms
-    setTimeout(this.animateHomeMovement.bind(this, .4*workFrames, animStep[3]), 550*workFrames/this.fps);
-
-    ++this.animStep;
-    console.log(this.animStep);
+    f1();
   }
 
-  animateFreeTime(animStep: number) {
+  animateFreeTime(next?: Function, nextDelay?: number) {
     // Guard for paused simulation
-    if (this.animState === 'stop' || this.animStep !== animStep) {
+    if (this.animState === 'stop') {
       setTimeout(this.animateFreeTime.bind(this, ...arguments), 100);
       return;
     }
 
-    ++this.animStep;
-    console.log(this.animStep);
+    if (next) setTimeout(next, nextDelay || 0);
   }
 
-  animateHome(homeInfections: object, homeFrames: number, animStep: number) {
+  animateHome(homeInfections: object, homeFrames: number, next?: Function, nextDelay?: number) {
     // Guard for paused simulation
-    if (this.animState === 'stop' || this.animStep !== animStep) {
+    if (this.animState === 'stop') {
       setTimeout(this.animateHome.bind(this, ...arguments), 100);
       return;
     }
 
-    this.animStep = 0;
-    this.midAnim = false;
+    if (next) setTimeout(next, nextDelay || 0);
+  }
+
+  animationChain(result: object): void {
+    this.midAnim = true;
+    let workFrames = this.dayLength*this.comm.numHoursWork/24;
+    let freeFrames = this.dayLength*this.comm.numHoursFree/24;
+    let homeFrames = this.dayLength*this.comm.numHoursHome/24;
+
+    var end = () => this.midAnim = false;
+    var endDelay = 1000*homeFrames/this.fps;
+    var home = this.animateHome.bind(this, result['homeInfections'], homeFrames, end, endDelay);
+    var homeDelay = 1000*freeFrames/this.fps;
+    var freeTime = this.animateFreeTime.bind(this, home, homeDelay)
+    var freeTimeDelay = 1000*workFrames/this.fps;
+    var start = this.animateWorkSchool.bind(this, result['workInfections'], result['schoolInfections'], workFrames, freeTime, freeTimeDelay);
+
+    start();
   }
 
   doCommStep(): void {
     let result = this.comm.step();
     if (this.displayType === 'viz') {
-      this.midAnim = true;
-      let workFrames = this.dayLength*this.comm.numHoursWork/24;
-      let freeFrames = this.dayLength*this.comm.numHoursFree/24;
-      let homeFrames = this.dayLength*this.comm.numHoursHome/24;
-      this.animStep = 0;
-      this.animateWorkSchool(result['workInfections'], result['schoolInfections'], workFrames, [0, 1, 2, 3]);
-      setTimeout(this.animateFreeTime.bind(this, 4), 1000*workFrames/this.fps); // TODO: fill in these arguments
-      setTimeout(this.animateHome.bind(this, result['homeInfections'], homeFrames, 5), 1000*(freeFrames + workFrames)/this.fps);
-      // Make sure whatever's called last here sets midAnim = false and animStep = 0 at the end
+      this.animationChain(result);
     }
-    else {
 
-    }
+    // Update graphs
+    // TODO!
+
     setTimeout(this.commStepTick.bind(this), 1000*this.dayLength/this.fps);
   }
 
@@ -566,6 +561,16 @@ export class SimComponent implements OnInit {
 
   onSchoolDistChange(event: any = null): void {
     this.schoolSizeDistSum = this.schoolSizeDist.reduce((acc, cur) => acc + cur, 0).toFixed(3);
+  }
+
+  skipBubble(event: any, skip: boolean): void {
+    if (skip) {
+      console.log("skipped");
+      event.stopImmediatePropagation();
+      console.log(event.currentTarget);
+      event.currentTarget.parentElement.click();
+    }
+    else console.log("not skipped");
   }
 
 }
