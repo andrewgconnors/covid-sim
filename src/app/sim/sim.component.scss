@@ -23,6 +23,11 @@
     height: 100%;
 }
 
+#statTable {
+    border-spacing: 10px 3px;
+    border-collapse: separate;
+}
+
 .mat-form-field-xs {
     max-width: 4ch;
 }
