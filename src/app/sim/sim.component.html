@@ -35,14 +35,14 @@
                         <mat-panel-title><strong>Statistics</strong></mat-panel-title>
                     </mat-expansion-panel-header>
                     <table>
-                        <tr>date: {{ comm.date }}</tr>
-                        <tr>numHealthy: {{ comm.statusCounts[0] }}</tr>
-                        <tr>numIncubating: {{ comm.statusCounts[1] }}</tr>
-                        <tr>numAsympotomatic: {{ comm.statusCounts[2] }}</tr>
-                        <tr>numIll: {{ comm.statusCounts[3] }}</tr>
-                        <tr>numRecovered: {{ comm.statusCounts[4] }}</tr>
-                        <tr>numDead: {{ comm.statusCounts[5] }}</tr>
-                        <tr>R0: {{ comm.currentR0 | number:'1.0-2'  }}</tr>
+                        <tr><td>Day:</td> <td>{{ comm.date }}</td></tr>
+                        <tr><td>Healthy:</td> <td>{{ comm.statusCounts[0] }}</td></tr>
+                        <tr><td>Incubating:</td> <td>{{ comm.statusCounts[1] }}</td></tr>
+                        <tr><td>Asympotomatic:</td> <td>{{ comm.statusCounts[2] }}</td></tr>
+                        <tr><td>Ill:</td> <td>{{ comm.statusCounts[3] }}</td></tr>
+                        <tr><td>Recovered:</td> <td>{{ comm.statusCounts[4] }}</td></tr>
+                        <tr><td>Dead:</td> <td>{{ comm.statusCounts[5] }}</td></tr>
+                        <tr><td>R0:</td> <td>{{ comm.currentR0 | number:'1.0-2'  }}</td></tr>
                     </table>
                 </mat-expansion-panel>
 
