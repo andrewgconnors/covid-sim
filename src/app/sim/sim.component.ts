@@ -293,6 +293,7 @@ export class SimComponent implements OnInit {
     this.onHomeDistChange();
     this.onWorkDistChange();
     this.onSchoolDistChange();
+    this.onCfrChange();
   }
 
   /**

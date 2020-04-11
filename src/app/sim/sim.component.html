@@ -194,7 +194,7 @@
                                             <mat-slider class="mat-slider-large" name="fatalityPercentSlider{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="fatalityPercent[i]" (ngModelChange)="onCfrChange()"></mat-slider>
                                         </div>
                                     </div>
-                                    <span>Total CFR: {{ weightedCFR }}<mat-icon class="ml-2 info-input" color="primary" matTooltip="The overall case fatality rate, weighted by the population's age distribution" matTooltipPosition="above" #tooltipCFR="matTooltip" (click)="tooltipCFR.toggle()">info_outline</mat-icon></span>
+                                    <span>Total CFR: {{ weightedCFR }}%<mat-icon class="ml-2 info-input" color="primary" matTooltip="The overall case fatality rate, weighted by the population's age distribution" matTooltipPosition="above" #tooltipCFR="matTooltip" (click)="tooltipCFR.toggle()">info_outline</mat-icon></span>
                                 </div>
                             </mat-expansion-panel>
                         </mat-accordion>
