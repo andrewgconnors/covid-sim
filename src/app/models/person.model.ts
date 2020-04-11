@@ -25,7 +25,7 @@ export class Person {
         healthStatus: number = 0,
         friends: Person[] = [],
         infectedBy: number = null,
-        infectedDate: number = 0,
+        infectedDate: number = null,
         infectionCourse: [number, number, number, number] = null,
         infectionOutcome: number = null
     ) {

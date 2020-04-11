@@ -254,10 +254,6 @@ export class SimComponent implements OnInit {
     while (this.vp.children[0]) this.vp.removeChild(this.vp.children[0]);
   }
 
-  updateVisualization () {
-    // TODO: Implement
-  }
-
   /**
    * Stops simulation, clears the current community, and replaces it with
    * the newly-specified community.
@@ -318,6 +314,10 @@ export class SimComponent implements OnInit {
     }
   }
 
+  updateVisualization () {
+    // TODO: Implement
+  }
+
   animLoop(delta): void {
     if (this.displayType !== 'viz' || this.animState === 'stop') { return; }
     else if (this.animState === 'move') {
@@ -373,7 +373,6 @@ export class SimComponent implements OnInit {
   }
 
   animateToWorkSchool(duration: number, next?: Function, nextDelay?: number) {
-    console.log(...arguments)
     // Guard for paused simulation
     if (this.animState === 'stop') {
       setTimeout(this.animateToWorkSchool.bind(this, ...arguments), 100);
@@ -389,7 +388,6 @@ export class SimComponent implements OnInit {
     }, this);
     this.setPersonPaths(dests, duration);
 
-    console.log(next);
     if (next) setTimeout(next, nextDelay || 0);
   }
 
@@ -411,7 +409,7 @@ export class SimComponent implements OnInit {
       infectedPeople.forEach(pId => {
         let p = this.comm.people[pId];
         let imgName = p.age <= 18 ? KID_IMGS[p.healthStatus] : ADULT_IMGS[p.healthStatus];
-        this.personImgs[pId].texture = loader.resources[imgName].texture
+        this.personImgs[pId].texture = loader.resources[imgName].texture;
       }, this);
     }
 
@@ -422,13 +420,13 @@ export class SimComponent implements OnInit {
       infectedPeople.forEach(pId => {
         let p = this.comm.people[pId];
         let imgName = p.age <= 18 ? KID_IMGS[p.healthStatus] : ADULT_IMGS[p.healthStatus];
-        this.personImgs[pId].texture = loader.resources[imgName].texture
+        this.personImgs[pId].texture = loader.resources[imgName].texture;
       }, this);
     }
 
     Object.entries(workCounts).forEach(ent => {
       let [workId, count] = ent;
-      this.addCountText('+' + count.toString(), this.scaledWorkLocs[workId][0], this.scaledWorkLocs[workId][1], 1000)
+      this.addCountText('+' + count.toString(), this.scaledWorkLocs[workId][0], this.scaledWorkLocs[workId][1], 1000);
     }, this);
 
     Object.entries(schoolCounts).forEach(ent => {
@@ -473,13 +471,13 @@ export class SimComponent implements OnInit {
       infectedPeople.forEach(pId => {
         let p = this.comm.people[pId];
         let imgName = p.age <= 18 ? KID_IMGS[p.healthStatus] : ADULT_IMGS[p.healthStatus];
-        this.personImgs[pId].texture = loader.resources[imgName].texture
+        this.personImgs[pId].texture = loader.resources[imgName].texture;
       }, this);
     }
 
     Object.entries(homeCounts).forEach(ent => {
       let [homeId, count] = ent;
-      this.addCountText('+' + count.toString(), this.scaledHomeLocs[homeId][0], this.scaledHomeLocs[homeId][1], 1000)
+      this.addCountText('+' + count.toString(), this.scaledHomeLocs[homeId][0], this.scaledHomeLocs[homeId][1], 1000);
     }, this);
 
     if (next) setTimeout(next, nextDelay || 0);
@@ -525,13 +523,30 @@ export class SimComponent implements OnInit {
     f1();
   }
 
+  updatePersonImgs(progressions: number[]) {
+    progressions.forEach(pId => {
+      let p = this.comm.people[pId];
+      if (p.healthStatus === 5) {
+        // Dead
+        this.vp.removeChild(this.personImgs[pId]);
+      }
+      else {
+        let imgName = p.age <= 18 ? KID_IMGS[p.healthStatus] : ADULT_IMGS[p.healthStatus];
+        this.personImgs[pId].texture = loader.resources[imgName].texture;
+      }
+    }, this);
+  }
+
   animationChain(result: object): void {
     this.midAnim = true;
     let workFrames = this.dayLength*this.comm.numHoursWork/24;
     let freeFrames = this.dayLength*this.comm.numHoursFree/24;
     let homeFrames = this.dayLength*this.comm.numHoursHome/24;
 
-    var end = () => this.midAnim = false;
+    var end = () => { 
+      this.updatePersonImgs(result['progressions']);
+      this.midAnim = false;
+    }
     var home = this.animateHome.bind(this, result['homeInfections'], homeFrames, end);
     var freeTime = this.animateFreeTime.bind(this, {}, freeFrames, home); // Replace empty object with result['freeTimeInfections']
     var workSchool = this.animateWorkSchool.bind(this, result['workInfections'], result['schoolInfections'], workFrames, freeTime);
@@ -541,12 +556,13 @@ export class SimComponent implements OnInit {
 
   doCommStep(): void {
     let result = this.comm.step();
-    if (this.displayType === 'viz') {
-      this.animationChain(result);
-    }
 
     // Update graphs
     // TODO!
+
+    if (this.displayType === 'viz') {
+      this.animationChain(result);
+    }
 
     setTimeout(this.commStepTick.bind(this), 1000*this.dayLength/this.fps);
   }
@@ -554,9 +570,15 @@ export class SimComponent implements OnInit {
   commStepTick(): void {
     if (this.playSpeed === 0) return;
     else {
-      // This condition means the previous step is done animating
-      if (!this.midAnim)
-        this.doCommStep();
+      // Check we're not in the middle of an animation
+      if (!this.midAnim) {
+        // Check if no one is infected, and stop if so
+        if ((this.comm.statusCounts[1] + this.comm.statusCounts[2] + this.comm.statusCounts[3]) === 0) {
+          this.animState = 'stop';
+          setTimeout( () => this.playSpeed = 0, 0);
+        }
+        else this.doCommStep();
+      }
       else
         setTimeout(this.commStepTick.bind(this), 100);
     }
@@ -591,16 +613,6 @@ export class SimComponent implements OnInit {
 
   onSchoolDistChange(event: any = null): void {
     this.schoolSizeDistSum = this.schoolSizeDist.reduce((acc, cur) => acc + cur, 0).toFixed(3);
-  }
-
-  skipBubble(event: any, skip: boolean): void {
-    if (skip) {
-      console.log("skipped");
-      event.stopImmediatePropagation();
-      console.log(event.currentTarget);
-      event.currentTarget.parentElement.click();
-    }
-    else console.log("not skipped");
   }
 
 }

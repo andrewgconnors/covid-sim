@@ -312,46 +312,17 @@ export class Community {
      * Returned object includes these properties:
      *   date `number`: the date for the step
      *   homeInfections/workInfections/schoolInfections `object`: each object has
-     *   location IDs as the keys, and lists of person IDs as the values. These
-     *   are the new infections that occurred that day.
+     *     location IDs as the keys, and lists of person IDs as the values. These
+     *     are the new infections that occurred that day.
      *   progressions `number[]`: list of IDs of people whose healthStatus
-     *   changed in this step because they were infected.
+     *     changed in this step because they were infected.
      *   newInfections: `number[]`: list of IDs of people whose healthStatus
-     *   progressed in this step, but were previously infected.
+     *     progressed in this step, but were previously infected.
      */
     step(): Object {
         let homeInfections = {};
         let workInfections = {};
         let schoolInfections = {};
-        
-        // Transmission inside homes
-        for (let h of this.homes) {
-            let newInfs = [];
-            let members = h.members.map(id => this.people[id]).filter(m => m.healthStatus !== 5);
-            if (members.length <= 1)
-                continue;
-            let contactCounts = new Array(members.length).fill(0);
-            // Only transmission from people who were infected before today
-            let enumMembers = [...members.entries()];
-            for (let [i, m] of enumMembers.filter(item => [2, 3].includes(item[1].healthStatus) && item[1].infectedDate < this.date)) {
-                for (let j = 0; j < this.numHoursHome*this.numContactsPerHourHome - contactCounts[i]; j++) {
-                    // Select random other member
-                    let contactIdx = getRandomInt(0, members.length - 2);
-                    if (contactIdx >= i) ++contactIdx;
-                    ++contactCounts[contactIdx];
-                    if (members[contactIdx].healthStatus === 0 &&
-                        Math.random() < this.pInfect) {
-                        members[contactIdx].infectedDate = this.date;
-                        members[contactIdx].infectedBy = m.id;
-                        let [tInc, tAsymp, tInf, outcome] = this.randomInfection(members[contactIdx].age);
-                        members[contactIdx].infectionCourse = [this.date, this.date + tInc, this.date + tInc + tAsymp, this.date + tInf];
-                        members[contactIdx].infectionOutcome = outcome;
-                        newInfs.push(members[contactIdx].id);
-                    }
-                }
-            }
-            if (newInfs.length > 0) homeInfections[h.id] = newInfs;
-        }
 
         // Transmission inside workplaces
         for (let wp of this.workplaces) {
@@ -368,7 +339,7 @@ export class Community {
                     let contactIdx = getRandomInt(0, members.length - 2);
                     if (contactIdx >= i) ++contactIdx;
                     ++contactCounts[contactIdx];
-                    if (members[contactIdx].healthStatus === 0 &&
+                    if (members[contactIdx].infectedDate === null &&
                         Math.random() < this.pInfect) {
                         members[contactIdx].infectedDate = this.date;
                         members[contactIdx].infectedBy = m.id;
@@ -397,7 +368,7 @@ export class Community {
                     let contactIdx = getRandomInt(0, members.length - 2);
                     if (contactIdx >= i) ++contactIdx;
                     ++contactCounts[contactIdx];
-                    if (members[contactIdx].healthStatus === 0 &&
+                    if (members[contactIdx].infectedDate === null &&
                         Math.random() < this.pInfect) {
                         members[contactIdx].infectedDate = this.date;
                         members[contactIdx].infectedBy = m.id;
@@ -411,6 +382,36 @@ export class Community {
             if (newInfs.length > 0) schoolInfections[school.id] = newInfs;
         }
 
+        // Transmission inside homes
+        for (let h of this.homes) {
+            let newInfs = [];
+            let members = h.members.map(id => this.people[id]).filter(m => m.healthStatus !== 5);
+            if (members.length <= 1)
+                continue;
+            let contactCounts = new Array(members.length).fill(0);
+            // Only transmission from people who were infected before today
+            let enumMembers = [...members.entries()];
+            // For each carrier, infect others
+            for (let [i, m] of enumMembers.filter(item => [2, 3].includes(item[1].healthStatus) && item[1].infectedDate < this.date)) {
+                for (let j = 0; j < this.numHoursHome*this.numContactsPerHourHome - contactCounts[i]; j++) {
+                    // Select random other member (offset by 1 so that you don't select the carrier)
+                    let contactIdx = getRandomInt(0, members.length - 2);
+                    if (contactIdx >= i) ++contactIdx;
+                    ++contactCounts[contactIdx];
+                    if (members[contactIdx].infectedDate === null &&
+                        Math.random() < this.pInfect) {
+                        members[contactIdx].infectedDate = this.date;
+                        members[contactIdx].infectedBy = m.id;
+                        let [tInc, tAsymp, tInf, outcome] = this.randomInfection(members[contactIdx].age);
+                        members[contactIdx].infectionCourse = [this.date, this.date + tInc, this.date + tInc + tAsymp, this.date + tInf];
+                        members[contactIdx].infectionOutcome = outcome;
+                        newInfs.push(members[contactIdx].id);
+                    }
+                }
+            }
+            if (newInfs.length > 0) homeInfections[h.id] = newInfs;
+        }
+
         let [progressions, newInfections] = this.updateHealthStatuses();
 
         return {
@@ -422,5 +423,6 @@ export class Community {
             'progressions': progressions,
             'newInfections': newInfections
         };
+
     }
 }
