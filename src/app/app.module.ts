@@ -16,7 +16,6 @@ import { ChartsModule } from 'ng2-charts';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { TestSimComponent } from './test-sim/test-sim.component';
 import { HealthStatusPipe } from './pipes/health-status.pipe';
 import { LocationTypePipe } from './pipes/location-type.pipe';
 import { SimComponent } from './sim/sim.component';
@@ -24,7 +23,6 @@ import { SimComponent } from './sim/sim.component';
 @NgModule({
   declarations: [
     AppComponent,
-    TestSimComponent,
     HealthStatusPipe,
     LocationTypePipe,
     SimComponent

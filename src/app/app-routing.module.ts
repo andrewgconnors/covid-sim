@@ -1,12 +1,10 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { TestSimComponent } from './test-sim/test-sim.component';
 import { SimComponent } from './sim/sim.component';
 import { TestPixiComponent } from './test-pixi/test-pixi.component';
 
 const routes: Routes = [
-  { path: 'test-sim', component: TestSimComponent },
   { path: 'sim', component: SimComponent },
   { path: 'test-pixi', component: TestPixiComponent },
   { path: '', redirectTo: '/sim', pathMatch: 'full' }
