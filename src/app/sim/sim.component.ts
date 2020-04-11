@@ -82,6 +82,7 @@ export class SimComponent implements OnInit {
   homeSizeDistSum: string = this.homeSizeDist.reduce((acc, cur) => acc + cur, 0).toFixed(3);
   workplaceSizeDistSum: string = this.workplaceSizeDist.reduce((acc, cur) => acc + cur, 0).toFixed(3);
   schoolSizeDistSum: string = this.schoolSizeDist.reduce((acc, cur) => acc + cur, 0).toFixed(3);
+  weightedCFR: string = this.fatalityPercent.map((p, i) => .01*p*this.ageDist[i]).reduce((acc, cur) => acc + cur).toFixed(3);
 
   // Attach labels to component
   ageLabels = ageLabels;
@@ -617,6 +618,10 @@ export class SimComponent implements OnInit {
 
   onSchoolDistChange(event: any = null): void {
     this.schoolSizeDistSum = this.schoolSizeDist.reduce((acc, cur) => acc + cur, 0).toFixed(3);
+  }
+
+  onCfrChange(event?: any): void {
+    this.weightedCFR = this.fatalityPercent.map((p, i) => .01*p*this.ageDist[i]).reduce((acc, cur) => acc + cur).toFixed(3);
   }
 
 }

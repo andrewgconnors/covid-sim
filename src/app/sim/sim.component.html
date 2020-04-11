@@ -87,11 +87,11 @@
                                     <div class="slider-row" *ngFor="let label of ageLabels; let i = index">
                                         <mat-form-field class="mat-form-field-sm">
                                             <mat-label>{{ label }}</mat-label>
-                                            <input matInput name="ageDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="ageDist[i]" (ngModelChange)="onAgeDistChange($event)">
+                                            <input matInput name="ageDist{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="ageDist[i]" (ngModelChange)="onAgeDistChange($event); onCfrChange();">
                                         </mat-form-field>
                                         <span class="ml-1">%</span>
                                         <div class="slider-wrapper">
-                                            <mat-slider class="mat-slider-large" name="ageDistSlider{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="ageDist[i]" (ngModelChange)="onAgeDistChange($event)"></mat-slider>
+                                            <mat-slider class="mat-slider-large" name="ageDistSlider{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="ageDist[i]" (ngModelChange)="onAgeDistChange($event); onCfrChange();"></mat-slider>
                                         </div>
                                     </div>
                                     <span [ngStyle]="{'color': ageDistSum === '100.000' ? 'green' : 'red'}" >Total: {{ ageDistSum | number:'1.0-3' }}</span>
@@ -187,13 +187,14 @@
                                     <div class="slider-row" *ngFor="let label of ageLabels; let i = index">
                                         <mat-form-field class="mat-form-field-sm">
                                             <mat-label>{{ label }}</mat-label>
-                                            <input matInput name="fatalityPercent{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="fatalityPercent[i]">
+                                            <input matInput name="fatalityPercent{{i}}" type="number" min="0" max="100" step="0.1" [(ngModel)]="fatalityPercent[i]" (ngModelChange)="onCfrChange()">
                                         </mat-form-field>
                                         <span class="ml-1">%</span>
                                         <div class="slider-wrapper">
-                                            <mat-slider class="mat-slider-large" name="fatalityPercentSlider{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="fatalityPercent[i]"></mat-slider>
+                                            <mat-slider class="mat-slider-large" name="fatalityPercentSlider{{i}}" [min]="0" [max]="100" step="0.1" [thumbLabel]="true" [(ngModel)]="fatalityPercent[i]" (ngModelChange)="onCfrChange()"></mat-slider>
                                         </div>
                                     </div>
+                                    <span>Total CFR: {{ weightedCFR }}<mat-icon class="ml-2 info-input" color="primary" matTooltip="The overall case fatality rate, weighted by the population's age distribution" matTooltipPosition="above" #tooltipCFR="matTooltip" (click)="tooltipCFR.toggle()">info_outline</mat-icon></span>
                                 </div>
                             </mat-expansion-panel>
                         </mat-accordion>
