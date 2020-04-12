@@ -24,6 +24,7 @@
     "@types/pixi.js": "^5.0.0",
     "bootstrap": "^4.4.1",
     "chart.js": "^2.9.3",
+    "chartjs-plugin-annotation": "^0.5.7",
     "ng2-charts": "^2.3.0",
     "pixi-viewport": "^4.10.0",
     "pixi.js": "^5.2.1",
