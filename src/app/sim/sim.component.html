@@ -4,10 +4,16 @@
             <div class="aspect-wrapper">
                 <mat-card class="mt-3 comm-viz">
 
-                    <div #pixiContainer class="viz-container" [hidden]="displayType !== 'viz'"></div>
-                    <button mat-icon-button class="loc-btn" color="primary" type="button" (click)="resetZoom()" aria-label="Reset zoom" [hidden]="displayType !== 'viz'"><mat-icon>my_location</mat-icon></button>
+                    <div #viz id="viz_wrapper">
+                        <div #pixiContainer class="pixi-container" [hidden]="displayType !== 'viz'"></div>
+                        <button mat-icon-button class="loc-btn" color="primary" type="button" (click)="resetZoom()" aria-label="Reset zoom" [hidden]="displayType !== 'viz'"><mat-icon>my_location</mat-icon></button>
 
-                    <span [hidden]="displayType !== 'graphs'">GRAPHS</span>
+                        <div class="graphs-container" [hidden]="displayType !== 'graphs'">
+                            <canvas #graphs>
+
+                            </canvas>
+                        </div>
+                    </div>
 
                 </mat-card>
             </div>

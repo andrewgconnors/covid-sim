@@ -20,6 +20,13 @@ export class SimComponent implements OnInit {
   @ViewChild('statPanel', { static: true })
   statPanel;
 
+  // Wrapper for graphs/pixiContainer - always visible
+  @ViewChild('viz', { static: true })
+  vizWrapper;
+
+  @ViewChild('graphs', { static: true })
+  graphsCanvas;
+
   @ViewChild('pixiContainer', { static: true })
   pixiContainer;
   pix: PIXI.Application;
@@ -175,7 +182,7 @@ export class SimComponent implements OnInit {
    * Resizes the canvas to fit the screen. Also calculates and caches the
    * coordinates of each location scaled according to the canvas size.
    */
-  resizeCanvas(): void {
+  setPixiSize(): void {
     this.pixiWidth = this.pixiContainer.nativeElement.clientWidth;
     this.pixiHeight = this.pixiContainer.nativeElement.clientHeight;
     this.pixiContainer.nativeElement.width = this.pixiWidth;
@@ -195,7 +202,6 @@ export class SimComponent implements OnInit {
   }
 
   initializePixi(): void {
-    // this.resizeCanvas();
     this.pix = new PIXI.Application({ width: this.pixiWidth, height: this.pixiHeight, antialias: true });
     this.pixiContainer.nativeElement.appendChild(this.pix.view);
     this.vp = new Viewport({
@@ -235,18 +241,36 @@ export class SimComponent implements OnInit {
     
   }
 
-  @HostListener('window:resize', ['$event'])
-  onWindowResize(event) {
-    this.pixiWidth = this.pixiContainer.nativeElement.clientWidth;
-    this.pixiHeight = this.pixiContainer.nativeElement.clientHeight;
+  resizePixiViewport(): void {
+    this.pixiWidth = this.vizWrapper.nativeElement.clientWidth;
+    this.pixiHeight = this.vizWrapper.nativeElement.clientHeight;
+    console.log(this.pixiWidth, this.pixiHeight);
     this.pix.renderer.resize(this.pixiWidth, this.pixiHeight);
     this.vp.resize(this.pixiWidth, this.pixiHeight);
   }
 
+  resizeGraphs(): void {
+    this.graphsCanvas.nativeElement.width = this.vizWrapper.nativeElement.clientWidth;
+    this.graphsCanvas.nativeElement.height = this.vizWrapper.nativeElement.clientHeight;
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event) {
+    if (this.displayType === 'viz') {
+      this.resizePixiViewport();
+    }
+    else if (this.displayType === 'graphs') {
+      this.resizeGraphs();
+    }
+  }
+
   ngAfterViewInit(): void {
-    this.resizeCanvas();
+    this.setPixiSize();
     this.initializePixi();
     this.resetZoom();
+
+    this.graphsCanvas.nativeElement.width = this.vizWrapper.nativeElement.clientWidth;
+    this.graphsCanvas.nativeElement.height = this.vizWrapper.nativeElement.clientHeight;
   }
 
   clearExistingCommunity () {
@@ -266,7 +290,7 @@ export class SimComponent implements OnInit {
     this.playSpeed = 0;
     this.clearExistingCommunity();
     this.initializeCommunity();
-    this.resizeCanvas();
+    this.setPixiSize();
     this.vp.worldWidth = this.commWidth;
     this.vp.worldHeight = this.commHeight;
     this.addLocations();
@@ -301,8 +325,13 @@ export class SimComponent implements OnInit {
    * visualization pane.
    */
   onDisplayTypeChange(event: any): void {
-    if (event.value === 'viz')
+    if (event.value === 'viz') {
+      this.resizePixiViewport();
       this.updateVisualization();
+    }
+    if (event.value === 'graphs') {
+      this.resizeGraphs();
+    }
   }
 
   onPlaySpeedChange(event: any): void {
