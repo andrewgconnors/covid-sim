@@ -320,6 +320,9 @@ export class Community {
      *     progressed in this step, but were previously infected.
      */
     step(): Object {
+
+        ++this.date;
+
         let homeInfections = {};
         let workInfections = {};
         let schoolInfections = {};
@@ -415,7 +418,7 @@ export class Community {
         let [progressions, newInfections] = this.updateHealthStatuses();
 
         return {
-            'date': this.date++,
+            'date': this.date,
             'r0': this.currentR0,
             'homeInfections': homeInfections,
             'workInfections': workInfections,
