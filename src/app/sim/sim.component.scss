@@ -36,6 +36,10 @@
     max-width: 7.5ch;
 }
 
+::ng-deep .mat-form-field-label-wrapper, ::ng-deep .mat-form-field-label {
+    overflow: visible !important;
+}
+
 .sliders-panel {
     display: flex;
     flex-direction: column;
