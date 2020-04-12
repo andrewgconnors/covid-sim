@@ -9,9 +9,15 @@
                         <button mat-icon-button class="loc-btn" color="primary" type="button" (click)="resetZoom()" aria-label="Reset zoom" [hidden]="displayType !== 'viz'"><mat-icon>my_location</mat-icon></button>
 
                         <div class="graphs-container" [hidden]="displayType !== 'graphs'">
-                            <canvas #graphs>
-
-                            </canvas>
+                            <canvas #graphs baseChart
+                                [datasets]="graphData"
+                                [labels]="graphLabels"
+                                [options]="graphOptions"
+                                [colors]="graphColors"
+                                [legend]="graphLegend"
+                                [chartType]="graphType"
+                                [plugins]="graphPlugins"
+                                ></canvas>
                         </div>
                     </div>
 

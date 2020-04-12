@@ -3,6 +3,9 @@ import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular
 import * as PIXI from 'pixi.js';
 var loader = PIXI.Loader.shared;
 import { Viewport } from 'pixi-viewport';
+import { ChartDataSets, ChartOptions } from 'chart.js';
+import { Color, BaseChartDirective, Label } from 'ng2-charts';
+import * as pluginAnnotations from 'chartjs-plugin-annotation';
 
 import { ADULT_IMGS, KID_IMGS, LOC_IMGS } from '../models/constants';
 import { Community } from '../models/community.model';
@@ -16,36 +19,6 @@ import { ageLabels, homeSizeLabels, workSizeLabels, schoolSizeLabels, initialDis
   styleUrls: ['./sim.component.scss']
 })
 export class SimComponent implements OnInit {
-
-  @ViewChild('statPanel', { static: true })
-  statPanel;
-
-  // Wrapper for graphs/pixiContainer - always visible
-  @ViewChild('viz', { static: true })
-  vizWrapper;
-
-  @ViewChild('graphs', { static: true })
-  graphsCanvas;
-
-  @ViewChild('pixiContainer', { static: true })
-  pixiContainer;
-  pix: PIXI.Application;
-  vp: Viewport;
-  pixiWidth: number;
-  pixiHeight: number;
-  commWidth: number;
-  commHeight: number;
-  imgW = 24;
-  imgH = 24;
-
-  // Play/pause speed of simulation
-  fps: number = 60;
-  playSpeed: number = 0;
-  // Number of frames in a day
-  dayLength: number = 0;
-  displayType: string = "viz";
-  animState: string = 'stop';
-  midAnim: boolean = false;
 
   // Community
 
@@ -82,6 +55,154 @@ export class SimComponent implements OnInit {
   storeImgs: Array<PIXI.Sprite> = [];
   personImgs: Array<PIXI.Sprite> = [];
   countTexts: Array<PIXI.Text> = [];
+
+  @ViewChild('statPanel', { static: true })
+  statPanel;
+
+  // Wrapper for graphs/pixiContainer - always visible
+  @ViewChild('viz', { static: true })
+  vizWrapper;
+
+  @ViewChild('pixiContainer', { static: true })
+  pixiContainer;
+  pix: PIXI.Application;
+  vp: Viewport;
+  pixiWidth: number;
+  pixiHeight: number;
+  commWidth: number;
+  commHeight: number;
+  imgW = 24;
+  imgH = 24;
+
+  @ViewChild(BaseChartDirective, { static: true })
+  graphsCanvas;
+  graphData: ChartDataSets[] = [
+    { data: [], label: 'Infected', stack: 'a', fill: 'origin' },
+    { data: [], label: 'Healthy', stack: 'a', fill: '-1' },
+    { data: [], label: 'Recovered', stack: 'a', fill: '-1' },
+    { data: [], label: 'Dead', stack: 'a', fill: '-1' },
+    { data: [], label: 'R0', yAxisID: 'y-axis-1', fill: false }
+  ];
+  graphLabels: Label[] = [];
+  graphOptions: (ChartOptions & { annotation: any }) = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      // We use this empty structure as a placeholder for dynamic theming.
+      xAxes: [
+        {
+          scaleLabel: {
+            display: true,
+            labelString: 'Day'
+          }
+        }
+      ],
+      yAxes: [
+        {
+          id: 'y-axis-0',
+          position: 'left',
+          stacked: true,
+          ticks: {
+            min: 0,
+            max: this.numPeople
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'People'
+          }
+        },
+        {
+          id: 'y-axis-1',
+          position: 'right',
+          // gridLines: {
+          //   color: 'rgba(255,0,0,0.3)',
+          // },
+          ticks: {
+            fontColor: 'red',
+            min: 0,
+            suggestedMax: 5
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'R0',
+            fontColor: 'red'
+          }
+        }
+      ]
+    },
+    annotation: {
+      annotations: [
+        // {
+        //   type: 'line',
+        //   mode: 'vertical',
+        //   scaleID: 'x-axis-0',
+        //   value: 'March',
+        //   borderColor: 'orange',
+        //   borderWidth: 2,
+        //   label: {
+        //     enabled: true,
+        //     position: "bottom",
+        //     fontColor: 'orange',
+        //     content: 'LineAnno'
+        //   }
+        // },
+      ],
+    },
+  };
+  graphColors: Color[] = [
+    { // Infected, orange
+      backgroundColor: 'rgba(255, 127, 42, 0.3)',
+      borderColor: 'rgba(255, 127, 42, .8)',
+      pointBackgroundColor: 'rgba(255, 127, 42, 1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(255, 127, 42, 1)'
+    },
+    { // Healthy, blue
+      backgroundColor: 'rgba(55, 171, 200, 0.3)',
+      borderColor: 'rgba(55, 171, 200, 1)',
+      pointBackgroundColor: 'rgba(55, 171, 200, 1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(55, 171, 200, 1)'
+    },
+    { // Recovered, green
+      backgroundColor: 'rgba(0, 128, 0, 0.3)',
+      borderColor: 'rgba(0, 128, 0, .8)',
+      pointBackgroundColor: 'rgba(0, 128, 0, 1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(0, 128, 0, 1)'
+    },
+    { // Dead, dark grey
+      backgroundColor: 'rgba(77, 83, 96, 0.2)',
+      borderColor: 'rgba(77, 83, 96, 1)',
+      pointBackgroundColor: 'rgba(77, 83, 96, 1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(77, 83, 96, 1)'
+    },
+    { // R0, red
+      backgroundColor: 'rgba(255, 0, 0, 0.3)',
+      borderColor: 'red',
+      pointBackgroundColor: 'rgba(255, 0, 0, 1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(255, 0, 0, 1)'
+    }
+  ];
+  graphLegend = true;
+  graphType = 'line';
+  graphPlugins = [pluginAnnotations];
+
+  // Play/pause speed of simulation
+  fps: number = 60;
+  playSpeed: number = 0;
+  // Number of frames in a day
+  dayLength: number = 0;
+  displayType: string = "viz";
+  animState: string = 'stop';
+  midAnim: boolean = false;
 
   // Variables that are only necessary for the UI 
   // (e.g., sums of distributions so that they won't be recalculated)
@@ -250,8 +371,7 @@ export class SimComponent implements OnInit {
   }
 
   resizeGraphs(): void {
-    this.graphsCanvas.nativeElement.width = this.vizWrapper.nativeElement.clientWidth;
-    this.graphsCanvas.nativeElement.height = this.vizWrapper.nativeElement.clientHeight;
+    // TODO: Fill in or delete
   }
 
   @HostListener('window:resize', ['$event'])
@@ -268,9 +388,6 @@ export class SimComponent implements OnInit {
     this.setPixiSize();
     this.initializePixi();
     this.resetZoom();
-
-    this.graphsCanvas.nativeElement.width = this.vizWrapper.nativeElement.clientWidth;
-    this.graphsCanvas.nativeElement.height = this.vizWrapper.nativeElement.clientHeight;
   }
 
   clearExistingCommunity () {
@@ -293,6 +410,12 @@ export class SimComponent implements OnInit {
     this.setPixiSize();
     this.vp.worldWidth = this.commWidth;
     this.vp.worldHeight = this.commHeight;
+    console.log(this.numPeople); // TODO: delete
+    let newOptions = Object.assign({}, this.graphOptions);
+    newOptions.scales.yAxes[0].ticks.max = this.numPeople;
+    this.graphOptions = newOptions;
+    this.graphsCanvas.update();
+    this.clearGraphs();
     this.addLocations();
     this.addPeople();
     this.resetZoom();
@@ -327,7 +450,7 @@ export class SimComponent implements OnInit {
   onDisplayTypeChange(event: any): void {
     if (event.value === 'viz') {
       this.resizePixiViewport();
-      this.updateVisualization();
+      this.updatePixiState();
     }
     if (event.value === 'graphs') {
       this.resizeGraphs();
@@ -349,8 +472,20 @@ export class SimComponent implements OnInit {
     }
   }
 
-  updateVisualization () {
-    // TODO: Implement
+  /**
+   * Updates the image for all people in the community
+   */
+  updatePixiState () {
+    this.comm.people.forEach(p => {
+      if (p.healthStatus === 5) {
+        // Dead
+        this.vp.removeChild(this.personImgs[p.id]);
+      }
+      else {
+        let imgName = p.age <= 18 ? KID_IMGS[p.healthStatus] : ADULT_IMGS[p.healthStatus];
+        this.personImgs[p.id].texture = loader.resources[imgName].texture;
+      }
+    }, this);
   }
 
   animLoop(delta): void {
@@ -589,11 +724,29 @@ export class SimComponent implements OnInit {
     workSchool();
   }
 
+  pushGraphData(date: number, healthy: number, infected: number, recovered: number, dead: number, r0: number) {
+    this.graphData[0].data.push(infected);
+    this.graphData[1].data.push(healthy);
+    this.graphData[2].data.push(recovered);
+    this.graphData[3].data.push(dead);
+    this.graphData[4].data.push(r0);
+    this.graphLabels.push(date.toString());
+  }
+
+  clearGraphs() {
+    this.graphData.forEach(dataset => {
+      dataset.data = [];
+    });
+    this.graphLabels = [];
+  }
+
   doCommStep(): void {
     let result = this.comm.step();
 
     // Update graphs
-    // TODO!
+    this.pushGraphData(result['date'], this.comm.statusCounts[0],
+      this.comm.statusCounts[1] + this.comm.statusCounts[2] + this.comm.statusCounts[3],
+      this.comm.statusCounts[4], this.comm.statusCounts[5], result['r0']);
 
     if (this.displayType === 'viz') {
       this.animationChain(result);
