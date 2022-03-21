@@ -8,19 +8,22 @@ export class Location {
     coordinates: [number, number];
     // List of IDs of people who are members of this location (for home/work/school)
     members: number[];
+    open: boolean;
 
     constructor(
         id: number,
         type: number,
         capacity: number,
         coordinates: [number, number],
-        members: number[] = []
+        members: number[] = [],
+        open: boolean = true
     ) {
         this.id = id;
         this.type = type;
         this.capacity = capacity;
         this.coordinates = coordinates;
         this.members = members;
+        this.open = open;
     }
 
 }

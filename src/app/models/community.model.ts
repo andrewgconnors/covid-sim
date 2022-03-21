@@ -33,8 +33,13 @@ export class Community {
 
     // Behavioral properties/counter-measure settings
 
-    percentWorking: number = 100;
+    businessesOpenFraction: number = 1;
+    workingFraction: number = 1; // TODO: Use this or delete it later
+    schoolsOpenFraction: number = 1;
     oneShopperPerHousehold: boolean = false;
+
+    // Random orders for selecting fractions of 
+    essentialBusinessOrder = [];
 
     // State variables
     date: number = 0;
